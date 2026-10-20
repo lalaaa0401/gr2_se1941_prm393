@@ -1,0 +1,70 @@
+# ─── Kiro IDE ─────────────────────────────────────────────────────────────────
+.kiro/
+
+# ─── Flutter / Dart ───────────────────────────────────────────────────────────
+# Build output
+build/
+
+# Dart tool cache
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# pub package cache & lock (giữ pubspec.lock nếu muốn reproducible builds)
+# .packages  ← đã deprecated, thường bỏ
+.packages
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# Coverage
+coverage/
+
+# ─── Android ──────────────────────────────────────────────────────────────────
+android/.gradle/
+android/local.properties
+android/key.properties          # ← signing keystore config — KHÔNG commit
+android/app/google-services.json
+android/captures/
+android/gradle/wrapper/gradle-wrapper.jar
+android/**/GeneratedPluginRegistrant.java
+
+# Build artifacts
+*.apk
+*.aab
+*.aar
+
+# ─── iOS (phòng khi mở rộng sau) ──────────────────────────────────────────────
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Flutter/App.framework
+ios/Flutter/ephemeral/
+
+# ─── macOS (nếu build desktop) ────────────────────────────────────────────────
+macos/Pods/
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/ephemeral/
+
+# ─── Secrets & local config ───────────────────────────────────────────────────
+.env
+.env.*
+*.jks                           # Keystore files
+google-services.json
+GoogleService-Info.plist
+
+# ─── IDE & OS ─────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Test artifacts ───────────────────────────────────────────────────────────
+test/.test_coverage.dart
