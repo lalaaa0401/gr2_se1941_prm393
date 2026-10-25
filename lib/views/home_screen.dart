@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'study_set/study_set_list_page.dart';
 import 'progress/progress_page.dart';
-import 'chat/chat_page.dart';
 import 'notification/notification_page.dart';
 import 'profile/profile_page.dart';
 import '../core/app_colors.dart';
