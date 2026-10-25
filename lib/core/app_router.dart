@@ -79,6 +79,7 @@ final appRouter = GoRouter(
 );
 
 /// Placeholder page dùng tạm cho các page chưa implement
+// ignore: unused_element
 class _PlaceholderPage extends StatelessWidget {
   final String name;
   const _PlaceholderPage(this.name);
