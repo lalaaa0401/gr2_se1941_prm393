@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../views/home_screen.dart';
+import '../views/splash_screen.dart';
+import '../views/auth/login_page.dart';
+import '../views/auth/register_page.dart';
+import '../views/study_set/study_set_detail_page.dart';
+import '../views/study/flashcard_study_page.dart';
+import '../views/study/quiz_page.dart';
+import '../views/study/quiz_result_page.dart';
+import '../views/profile/profile_page.dart';
 
 /// Tất cả route names
 class AppRoutes {
@@ -20,51 +29,51 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: AppRoutes.splash,
-      builder: (context, state) => const _PlaceholderPage('SplashScreen'),
+      builder: (context, state) => const SplashScreen(),
     ),
     GoRoute(
       path: AppRoutes.login,
-      builder: (context, state) => const _PlaceholderPage('LoginPage'),
+      builder: (context, state) => const LoginPage(),
     ),
     GoRoute(
       path: AppRoutes.register,
-      builder: (context, state) => const _PlaceholderPage('RegisterPage'),
+      builder: (context, state) => const RegisterPage(),
     ),
     GoRoute(
       path: AppRoutes.home,
-      builder: (context, state) => const _PlaceholderPage('HomeScreen'),
+      builder: (context, state) => const HomeScreen(),
     ),
     GoRoute(
       path: AppRoutes.studySetDetail,
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
-        return _PlaceholderPage('StudySetDetailPage id=$id');
+        return StudySetDetailPage(studySetId: id);
       },
     ),
     GoRoute(
       path: AppRoutes.flashcardStudy,
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
-        return _PlaceholderPage('FlashcardStudyPage id=$id');
+        return FlashcardStudyPage(studySetId: id);
       },
     ),
     GoRoute(
       path: AppRoutes.quiz,
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
-        return _PlaceholderPage('QuizPage id=$id');
+        return QuizPage(studySetId: id);
       },
     ),
     GoRoute(
       path: AppRoutes.quizResult,
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
-        return _PlaceholderPage('QuizResultPage id=$id');
+        return QuizResultPage(studySetId: id);
       },
     ),
     GoRoute(
       path: AppRoutes.profile,
-      builder: (context, state) => const _PlaceholderPage('ProfilePage'),
+      builder: (context, state) => const ProfilePage(),
     ),
   ],
 );

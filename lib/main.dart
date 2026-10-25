@@ -1,13 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'core/app_colors.dart';
 import 'core/app_router.dart';
-
-// ViewModels và Providers sẽ được import khi từng người implement
-// Hiện tại để stub để app compile được
+import 'services/api_service.dart';
+import 'viewmodels/auth_viewmodel.dart';
+import 'viewmodels/study_set_viewmodel.dart';
+import 'viewmodels/study_viewmodel.dart';
+import 'viewmodels/notification_viewmodel.dart';
+import 'viewmodels/progress_viewmodel.dart';
+import 'viewmodels/chat_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const QuizZoneApp());
+  final apiService = ApiService();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthViewModel(apiService)),
+        ChangeNotifierProvider(create: (_) => StudySetViewModel(apiService)),
+        ChangeNotifierProvider(create: (_) => StudyViewModel(apiService)),
+        ChangeNotifierProvider(create: (_) => NotificationViewModel(apiService)),
+        ChangeNotifierProvider(create: (_) => ProgressViewModel(apiService)),
+        ChangeNotifierProvider(create: (_) => ChatViewModel(apiService)),
+      ],
+      child: const QuizZoneApp(),
+    ),
+  );
 }
 
 class QuizZoneApp extends StatelessWidget {
