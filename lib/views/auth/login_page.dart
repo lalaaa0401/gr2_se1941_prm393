@@ -23,43 +23,49 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  String? _validateInputs() {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty) {
-      _showError('Vui lòng nhập email');
-      return;
-    }
-    if (password.length < 8) {
-      _showError('Mật khẩu tối thiểu 8 ký tự');
+    if (email.isEmpty) return 'Email không được để trống';
+    if (password.length < 8) return 'Mật khẩu phải có ít nhất 8 ký tự';
+    return null;
+  }
+
+  Future<void> _submit() async {
+    final error = _validateInputs();
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: AppColors.error,
+        ),
+      );
       return;
     }
 
     final authViewModel = context.read<AuthViewModel>();
-    final success = await authViewModel.login(email, password);
+    final success = await authViewModel.login(
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+
     if (!mounted) return;
 
     if (success) {
       context.go(AppRoutes.home);
     } else {
-      _showError(authViewModel.errorMessage ?? 'Đăng nhập thất bại');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authViewModel.errorMessage ?? 'Đăng nhập thất bại'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = context.watch<AuthViewModel>().isLoading;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -67,26 +73,39 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const SizedBox(height: 48),
               const Text(
                 'QuizZone',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.4,
                   color: AppColors.textPrimary,
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
+              const Text(
+                'Đăng nhập',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 32),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  hintText: 'Email',
                   filled: true,
                   fillColor: AppColors.surface,
+                  hintText: 'Email',
+                  hintStyle: const TextStyle(
+                      color: AppColors.textDisabled, fontSize: 13),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: const BorderSide(color: AppColors.border),
@@ -102,8 +121,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10),
-                  hintStyle: const TextStyle(
-                      color: AppColors.textDisabled, fontSize: 13),
                 ),
               ),
               const SizedBox(height: 12),
@@ -111,9 +128,11 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  hintText: 'Mật khẩu',
                   filled: true,
                   fillColor: AppColors.surface,
+                  hintText: 'Mật khẩu',
+                  hintStyle: const TextStyle(
+                      color: AppColors.textDisabled, fontSize: 13),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: const BorderSide(color: AppColors.border),
@@ -129,45 +148,51 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10),
-                  hintStyle: const TextStyle(
-                      color: AppColors.textDisabled, fontSize: 13),
                 ),
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: isLoading ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 12),
-                  textStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.01,
+              const SizedBox(height: 20),
+              Consumer<AuthViewModel>(
+                builder: (context, auth, _) => SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: auth.isLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                      textStyle: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.01,
+                      ),
+                    ),
+                    child: auth.isLoading
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text('Đăng nhập'),
                   ),
                 ),
-                child: isLoading
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text('Đăng nhập'),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               TextButton(
                 onPressed: () => context.go(AppRoutes.register),
                 child: const Text(
                   'Chưa có tài khoản? Đăng ký',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
