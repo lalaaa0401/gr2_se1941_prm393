@@ -14,12 +14,16 @@ class AuthViewModel extends ChangeNotifier {
 
   AuthViewModel(this._apiService);
 
+  // ─── Public getters ────────────────────────────────────────────────────────
+
   User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isLoggedIn => _isLoggedIn;
 
-  /// Mock login: accept any email/password, create fake User, 800ms delay.
+  // ─── Auth actions ──────────────────────────────────────────────────────────
+
+  /// Mock login: accepts any email/password, 800 ms delay.
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
@@ -27,10 +31,11 @@ class AuthViewModel extends ChangeNotifier {
 
     try {
       await Future.delayed(const Duration(milliseconds: 800));
+
       _currentUser = User(
         id: 1,
         email: email,
-        fullName: 'User',
+        fullName: email.split('@').first,
         token: 'mock_access_token',
       );
       final prefs = await SharedPreferences.getInstance();
@@ -47,20 +52,15 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Mock register: same pattern as login, 800ms delay.
-  Future<bool> register(String email, String password, String fullName) async {
+  /// Mock register: accepts any input, 800 ms delay.
+  Future<bool> register(
+      String email, String password, String fullName) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       await Future.delayed(const Duration(milliseconds: 800));
-      _currentUser = User(
-        id: 1,
-        email: email,
-        fullName: fullName,
-        token: 'mock_access_token',
-      );
       _isLoading = false;
       notifyListeners();
       return true;
@@ -72,7 +72,7 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Clear current user and remove access_token from SharedPreferences.
+  /// Clear session and remove token from SharedPreferences.
   Future<void> logout() async {
     _currentUser = null;
     _isLoggedIn = false;
@@ -81,13 +81,13 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Read 'access_token' from SharedPreferences; if present set _isLoggedIn = true.
+  /// Read 'access_token' from SharedPreferences; set _isLoggedIn if present.
   Future<void> checkSession() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
     if (token != null) {
       _isLoggedIn = true;
-      notifyListeners();
     }
+    notifyListeners();
   }
 }
