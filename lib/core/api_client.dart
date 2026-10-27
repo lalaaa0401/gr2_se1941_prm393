@@ -40,7 +40,7 @@ class ApiClient {
             await prefs.remove('access_token');
             AuthState.instance.update(false);
           } else {
-            // Phát lỗi ra ErrorBus để QuizZoneApp hiển thị SnackBar
+            // Phát lỗi ra ErrorBus để QuizLabApp hiển thị SnackBar
             ErrorBus.instance.emit(_buildMessage(error));
           }
           return handler.next(error);

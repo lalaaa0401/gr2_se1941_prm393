@@ -7,7 +7,7 @@ import '../models/notification.dart';
 import '../models/message.dart';
 import '../models/study_progress.dart';
 
-/// Tất cả HTTP calls đến QuizZone REST API
+/// Tất cả HTTP calls đến QuizLab REST API
 /// Base URL: http://10.0.2.2:8080
 /// Response format: { "success": bool, "message": String, "data": T }
 class ApiService {

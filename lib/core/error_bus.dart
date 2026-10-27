@@ -3,7 +3,7 @@ import 'dart:async';
 /// Singleton StreamController — phát error message để hiển thị SnackBar toàn cục.
 ///
 /// API interceptor gọi emit() khi có lỗi mạng/server.
-/// QuizZoneApp lắng nghe stream và hiển thị SnackBar.
+/// QuizLabApp lắng nghe stream và hiển thị SnackBar.
 class ErrorBus {
   static final ErrorBus instance = ErrorBus._();
   ErrorBus._();

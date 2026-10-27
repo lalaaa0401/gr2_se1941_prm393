@@ -1,9 +1,9 @@
-/// Hardcoded strings cho QuizZone
+/// Hardcoded strings cho QuizLab
 class AppStrings {
   AppStrings._();
 
   // App
-  static const String appName = 'QuizZone';
+  static const String appName = 'QuizLab';
 
   // Auth
   static const String login         = 'Đăng nhập';

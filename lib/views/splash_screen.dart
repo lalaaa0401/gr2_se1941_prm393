@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
             Text(
-              'QuizZone',
+              'QuizLab',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,

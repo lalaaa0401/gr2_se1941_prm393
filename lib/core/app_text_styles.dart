@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Typography của QuizZone
+/// Typography của QuizLab
 class AppTextStyles {
   AppTextStyles._();
 
