@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/notification_viewmodel.dart';
 import 'study_set/study_set_list_page.dart';
 import 'progress/progress_page.dart';
 import 'notification/notification_page.dart';
@@ -34,43 +36,53 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: NavigationBar(
-        elevation: 0,
-        backgroundColor: AppColors.surface,
-        shadowColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        indicatorColor: AppColors.primaryLight,
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: AppStrings.navStudySets,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: AppStrings.navProgress,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
-            label: AppStrings.navChat,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
-            label: AppStrings.navNotifications,
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: AppStrings.navProfile,
-          ),
-        ],
+      bottomNavigationBar: Consumer<NotificationViewModel>(
+        builder: (context, notifVm, _) => NavigationBar(
+          elevation: 0,
+          backgroundColor: AppColors.surface,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          indicatorColor: AppColors.primaryLight,
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: (index) {
+            setState(() => _selectedIndex = index);
+          },
+          destinations: [
+            const NavigationDestination(
+              icon: Icon(Icons.menu_book_outlined),
+              selectedIcon: Icon(Icons.menu_book),
+              label: AppStrings.navStudySets,
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(Icons.bar_chart),
+              label: AppStrings.navProgress,
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.chat_bubble_outline),
+              selectedIcon: Icon(Icons.chat_bubble),
+              label: AppStrings.navChat,
+            ),
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: notifVm.unreadCount > 0,
+                label: Text('${notifVm.unreadCount}'),
+                child: const Icon(Icons.notifications_outlined),
+              ),
+              selectedIcon: Badge(
+                isLabelVisible: notifVm.unreadCount > 0,
+                label: Text('${notifVm.unreadCount}'),
+                child: const Icon(Icons.notifications),
+              ),
+              label: AppStrings.navNotifications,
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: AppStrings.navProfile,
+            ),
+          ],
+        ),
       ),
     );
   }
