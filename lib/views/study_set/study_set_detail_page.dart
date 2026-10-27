@@ -32,6 +32,7 @@ class _StudySetDetailPageState extends State<StudySetDetailPage> {
       builder: (context, vm, _) {
         if (vm.isLoading) {
           return const Scaffold(
+            backgroundColor: AppColors.background,
             body: Center(child: CircularProgressIndicator()),
           );
         }
@@ -40,15 +41,29 @@ class _StudySetDetailPageState extends State<StudySetDetailPage> {
 
         if (studySet == null) {
           return Scaffold(
-            appBar: AppBar(
-              backgroundColor: AppColors.surface,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              iconTheme:
-                  const IconThemeData(color: AppColors.textPrimary),
-            ),
-            body: const Center(
-              child: Text('Không tìm thấy bộ học'),
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  // Cream header khi không tìm thấy bộ học
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 12, 24, 16),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new),
+                          onPressed: () => context.pop(),
+                          iconSize: 20,
+                          color: AppColors.textPrimary,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Expanded(
+                    child: Center(child: Text('Không tìm thấy bộ học')),
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -73,67 +88,92 @@ class _StudySetDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final subject = studySet.subject;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(studySet.title, style: AppTextStyles.h2),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        iconTheme:
-            const IconThemeData(color: AppColors.textPrimary),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 12),
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 16),
-          _buildActionButtons(context),
-          const SizedBox(height: 16),
-          const Divider(color: AppColors.border),
-          const SizedBox(height: 8),
-          const Text('Danh sách thẻ', style: AppTextStyles.h2),
-          const SizedBox(height: 8),
-          ...studySet.flashcards.expand(
-            (card) => [
-              _FlashcardItem(flashcard: card),
-              const Divider(color: AppColors.border, height: 1),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+      body: SafeArea(
+        child: Column(
+          children: [
+            // [A] Cream header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 12, 24, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new),
+                    onPressed: () => context.pop(),
+                    iconSize: 20,
+                    color: AppColors.textPrimary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (subject != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.getSubjectBgColor(subject),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              subject.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.5,
+                                color: AppColors.getSubjectTextColor(subject),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                        ],
+                        Text(studySet.title, style: AppTextStyles.h2),
+                        Text(
+                          '${studySet.cardCount} thẻ',
+                          style: AppTextStyles.mono
+                              .copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(studySet.title, style: AppTextStyles.h1),
-        if (studySet.subject != null) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(2),
+            // [B] White sheet
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    _buildActionButtons(context),
+                    const SizedBox(height: 20),
+                    const Divider(color: AppColors.border, height: 1),
+                    const SizedBox(height: 12),
+                    const Text('Danh sách thẻ', style: AppTextStyles.h2),
+                    const SizedBox(height: 12),
+                    ...studySet.flashcards.expand(
+                      (card) => [
+                        _FlashcardItem(flashcard: card),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-            child: Text(
-              studySet.subject!,
-              style:
-                  AppTextStyles.label.copyWith(color: AppColors.primary),
-            ),
-          ),
-        ],
-        const SizedBox(height: 8),
-        Text(
-          '${studySet.cardCount} thẻ',
-          style: AppTextStyles.mono
-              .copyWith(color: AppColors.textSecondary),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -141,49 +181,56 @@ class _StudySetDetailView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Bắt đầu học — primary background
         ElevatedButton(
-          onPressed: () =>
-              context.go('/study/$studySetId/flashcard'),
+          onPressed: () => context.go('/study/$studySetId/flashcard'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(14),
             ),
-            padding: const EdgeInsets.symmetric(
-                horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.01,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
             ),
           ),
           child: const Text('Bắt đầu học'),
         ),
-        const SizedBox(height: 8),
-        OutlinedButton(
+        const SizedBox(height: 10),
+
+        // Làm quiz — primaryLight background
+        ElevatedButton(
           onPressed: () => context.go('/study/$studySetId/quiz'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.textPrimary,
-            side: const BorderSide(color: AppColors.border, width: 1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryLight,
+            foregroundColor: AppColors.primary,
             elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           child: const Text('Làm quiz'),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
+
+        // Bình luận — outlined
         OutlinedButton(
           onPressed: () => context.go('/study/$studySetId/chat'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.textPrimary,
-            side: const BorderSide(color: AppColors.border, width: 1),
+            side: const BorderSide(color: AppColors.border, width: 1.5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(14),
             ),
-            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           child: const Text('Bình luận'),
         ),
@@ -199,20 +246,21 @@ class _FlashcardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDim,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            flashcard.term,
-            style: AppTextStyles.h2,
-          ),
-          const SizedBox(height: 4),
+          Text(flashcard.term, style: AppTextStyles.h3),
+          const SizedBox(height: 6),
           Text(
             flashcard.definition,
-            style: AppTextStyles.body
-                .copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ),
