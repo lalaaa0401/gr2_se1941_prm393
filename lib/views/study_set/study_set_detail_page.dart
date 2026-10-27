@@ -244,18 +244,24 @@ class _StudySetDetailView extends StatelessWidget {
                   : () async {
                       await studyVm.loadWeakCards(studySetId);
                       if (!context.mounted) return;
+                      if (studyVm.errorMessage != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(studyVm.errorMessage!),
+                          backgroundColor: AppColors.error,
+                          behavior: SnackBarBehavior.floating,
+                        ));
+                        return;
+                      }
                       if (studyVm.weakCards.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content:
-                                Text('Bạn đã biết tất cả thẻ trong bộ học này!'),
+                            content: Text('Bạn đã biết tất cả thẻ trong bộ học này!'),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
                         return;
                       }
-                      context.go(
-                          '/review/weak/$studySetId');
+                      context.go('/review/weak/$studySetId');
                     },
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.warning,

@@ -27,29 +27,28 @@ class _HomeScreenState extends State<HomeScreen> {
     ProfilePage(),         // index 3 — Hồ sơ
   ];
 
+  HomeTabController? _tabController;
+
   @override
   void initState() {
     super.initState();
-    // Đăng ký listener sau khi frame đầu tiên được render xong
-    // để tránh gọi setState trước khi widget mount.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<HomeTabController>().addListener(_onTabChange);
+      _tabController = context.read<HomeTabController>();
+      _tabController!.addListener(_onTabChange);
     });
   }
 
-  /// Được gọi khi HomeTabController thay đổi activeIndex.
   void _onTabChange() {
     if (!mounted) return;
     setState(() {
-      _selectedIndex = context.read<HomeTabController>().activeIndex;
+      _selectedIndex = _tabController!.activeIndex;
     });
   }
 
   @override
   void dispose() {
-    // HomeTabController còn sống ở MultiProvider — chỉ cần remove listener.
-    context.read<HomeTabController>().removeListener(_onTabChange);
+    _tabController?.removeListener(_onTabChange);
     super.dispose();
   }
 

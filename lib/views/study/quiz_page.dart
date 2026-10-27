@@ -88,15 +88,15 @@ class _QuizPageState extends State<QuizPage> {
 
   void _selectOption(int idx) {
     if (_answered) return;
+    final isCorrect = idx == _questions[_currentIdx].correctIndex;
+    // Ghi nhận thẻ sai TRƯỚC setState để tránh notifyListeners trong setState
+    if (!isCorrect && _flashcards.isNotEmpty) {
+      context.read<StudyViewModel>().addWrongCard(_flashcards[_currentIdx]);
+    }
     setState(() {
       _selectedIdx = idx;
       _answered = true;
-      if (idx == _questions[_currentIdx].correctIndex) {
-        _score++;
-      } else if (_flashcards.isNotEmpty) {
-        // Ghi nhận thẻ sai để ôn lại sau
-        context.read<StudyViewModel>().addWrongCard(_flashcards[_currentIdx]);
-      }
+      if (isCorrect) _score++;
     });
   }
 
