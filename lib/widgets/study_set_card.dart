@@ -28,53 +28,77 @@ class StudySetCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
           children: [
-            // Subject label uppercase
-            if (studySet.subject != null) ...[
-              Text(
-                studySet.subject!.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
-                  color: accentColor,
+            // Decorative circle — top right
+            Positioned(
+              right: -10,
+              top: -10,
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(height: 4),
-            ],
-            // Tiêu đề
-            Text(studySet.title, style: AppTextStyles.h3),
-            const SizedBox(height: 10),
-            // Bottom row: cardCount + progress bar + %
-            Row(
+            ),
+            // Content
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${studySet.cardCount} thẻ',
-                  style: AppTextStyles.mono.copyWith(color: accentColor.withValues(alpha: 0.8)),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      value: studySet.completionRate,
-                      minHeight: 4,
-                      backgroundColor: Colors.black.withValues(alpha: 0.08),
-                      valueColor: AlwaysStoppedAnimation(accentColor),
+                // Subject label uppercase
+                if (studySet.subject != null) ...[
+                  Text(
+                    studySet.subject!.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.5,
+                      color: accentColor,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                ],
+                // Tiêu đề — right-pad để không chồng lên circle
+                Padding(
+                  padding: const EdgeInsets.only(right: 48),
+                  child: Text(studySet.title, style: AppTextStyles.h3),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '$pct%',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: accentColor,
-                    fontFamily: 'monospace',
-                  ),
+                const SizedBox(height: 10),
+                // Bottom row: count + progress bar + %
+                Row(
+                  children: [
+                    Text(
+                      '${studySet.cardCount} thẻ',
+                      style: AppTextStyles.mono.copyWith(
+                          color: accentColor.withValues(alpha: 0.8)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: studySet.completionRate,
+                          minHeight: 4,
+                          backgroundColor:
+                              Colors.black.withValues(alpha: 0.08),
+                          valueColor: AlwaysStoppedAnimation(accentColor),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$pct%',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
