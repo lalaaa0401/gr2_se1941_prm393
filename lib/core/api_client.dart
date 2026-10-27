@@ -40,8 +40,14 @@ class ApiClient {
             await prefs.remove('access_token');
             AuthState.instance.update(false);
           } else {
-            // Phát lỗi ra ErrorBus để QuizLabApp hiển thị SnackBar
-            ErrorBus.instance.emit(_buildMessage(error));
+            // Suppress lỗi cho các endpoint optional (không crash app nếu BE chưa có)
+            const silentPaths = ['/api/study-sets/continue'];
+            final path = error.requestOptions.path;
+            final isSilent = silentPaths.any((p) => path.endsWith(p));
+            if (!isSilent) {
+              // Phát lỗi ra ErrorBus để QuizLabApp hiển thị SnackBar
+              ErrorBus.instance.emit(_buildMessage(error));
+            }
           }
           return handler.next(error);
         },
