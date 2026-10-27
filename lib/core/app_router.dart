@@ -9,6 +9,7 @@ import '../views/study/flashcard_study_page.dart';
 import '../views/study/quiz_page.dart';
 import '../views/study/quiz_result_page.dart';
 import '../views/profile/profile_page.dart';
+import '../views/chat/chat_page.dart';
 
 /// Tất cả route names
 class AppRoutes {
@@ -20,6 +21,7 @@ class AppRoutes {
   static const flashcardStudy = '/study/:id/flashcard';
   static const quiz           = '/study/:id/quiz';
   static const quizResult     = '/study/:id/quiz/result';
+  static const studyChat      = '/study/:id/chat';
   static const profile        = '/profile';
 }
 
@@ -69,6 +71,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id']!);
         return QuizResultPage(studySetId: id);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.studyChat,
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return ChatPage(studySetId: id);
       },
     ),
     GoRoute(

@@ -7,6 +7,7 @@ import 'notification/notification_page.dart';
 import 'profile/profile_page.dart';
 import '../core/app_colors.dart';
 import '../core/app_strings.dart';
+import '../core/app_text_styles.dart';
 
 /// Màn hình chính với BottomNavigationBar 5 tabs
 class HomeScreen extends StatefulWidget {
@@ -66,12 +67,12 @@ class _HomeScreenState extends State<HomeScreen> {
             NavigationDestination(
               icon: Badge(
                 isLabelVisible: notifVm.unreadCount > 0,
-                label: Text('${notifVm.unreadCount}'),
+                label: Text('${notifVm.unreadCount}', style: AppTextStyles.monoSmall),
                 child: const Icon(Icons.notifications_outlined),
               ),
               selectedIcon: Badge(
                 isLabelVisible: notifVm.unreadCount > 0,
-                label: Text('${notifVm.unreadCount}'),
+                label: Text('${notifVm.unreadCount}', style: AppTextStyles.monoSmall),
                 child: const Icon(Icons.notifications),
               ),
               label: AppStrings.navNotifications,
