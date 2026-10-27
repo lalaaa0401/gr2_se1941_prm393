@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_text_styles.dart';
+import '../../models/study_progress.dart';
 import '../../viewmodels/progress_viewmodel.dart';
 
-/// T3-P5-01 – Trang tiến độ học tập với fl_chart.
-///
-/// - Bar chart: số thẻ học theo ngày trong tuần.
-/// - Pie chart: tỷ lệ biết / chưa biết.
-/// - Stats cards: tổng thẻ biết, số quiz đã làm, điểm trung bình, số bộ học.
+/// Màu highlight bar hôm nay — burnt sienna (accent riêng cho chart)
+const Color _kTodayColor = Color(0xFFB84A1D);
+
 class ProgressPage extends StatefulWidget {
   const ProgressPage({super.key});
 
@@ -33,33 +32,54 @@ class _ProgressPageState extends State<ProgressPage> {
       body: SafeArea(
         child: Consumer<ProgressViewModel>(
           builder: (context, vm, _) {
-            final summary = vm.summary;
-            final known = summary?.totalKnownCards ?? 0;
-            final unknown = summary != null &&
-                    summary.totalStudySets > 0 &&
-                    summary.totalKnownCards > 0
-                ? (summary.totalKnownCards * 0.4).round()
-                : 0;
+            if (vm.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (vm.errorMessage != null) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(vm.errorMessage!, style: AppTextStyles.body),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: vm.refresh,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: const Text('Thử lại'),
+                    ),
+                  ],
+                ),
+              );
+            }
 
+            final s = vm.summary;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // [A] Cream header — title + stat cards trực tiếp trên cream
+                // ── CREAM HEADER ──────────────────────────────────────────
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('Tiến độ học tập', style: AppTextStyles.h1),
-                      if (!vm.isLoading && summary != null) ...[
-                        const SizedBox(height: 16),
-                        _StatsRow(summary: summary),
+                      const SizedBox(height: 16),
+                      if (s != null) ...[
+                        _HeroCard(summary: s),
+                        const SizedBox(height: 12),
+                        _MiniStatsRow(summary: s),
                       ],
                     ],
                   ),
                 ),
 
-                // [B] White sheet — chỉ chứa charts
+                // ── WHITE SHEET ───────────────────────────────────────────
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -67,35 +87,28 @@ class _ProgressPageState extends State<ProgressPage> {
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(32)),
                     ),
-                    child: vm.isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : summary == null
-                            ? const Center(
-                                child: Text('Không có dữ liệu tiến độ.'))
-                            : ListView(
-                                padding: const EdgeInsets.all(24),
-                                children: [
-                                  // ── Bar chart — học theo ngày ─────────
-                                  const Text('Thẻ học theo ngày',
-                                      style: AppTextStyles.h2),
-                                  const SizedBox(height: 12),
-                                  _WeeklyBarChart(data: vm.weeklyStudy),
-                                  const SizedBox(height: 24),
+                    child: s == null
+                        ? const Center(child: Text('Chưa có dữ liệu'))
+                        : ListView(
+                            padding: const EdgeInsets.all(24),
+                            children: [
+                              // Bar chart tuần
+                              const Text('Thẻ học trong tuần',
+                                  style: AppTextStyles.h2),
+                              const SizedBox(height: 12),
+                              _WeeklyBarChart(data: s.weeklyActivity),
+                              const SizedBox(height: 24),
 
-                                  // ── Pie chart — biết / chưa biết ──────
-                                  if (known > 0 || unknown > 0) ...[
-                                    const Text('Tỷ lệ biết / chưa biết',
-                                        style: AppTextStyles.h2),
-                                    const SizedBox(height: 12),
-                                    _KnownPieChart(
-                                        known: known, unknown: unknown),
-                                    const SizedBox(height: 12),
-                                    _PieLegend(
-                                        known: known, unknown: unknown),
-                                    const SizedBox(height: 16),
-                                  ],
-                                ],
-                              ),
+                              // Per-set progress
+                              if (vm.setProgress.isNotEmpty) ...[
+                                const Text('Tiến độ từng bộ học',
+                                    style: AppTextStyles.h2),
+                                const SizedBox(height: 4),
+                                ...vm.setProgress.map(
+                                    (p) => _SetProgressItem(progress: p)),
+                              ],
+                            ],
+                          ),
                   ),
                 ),
               ],
@@ -107,43 +120,143 @@ class _ProgressPageState extends State<ProgressPage> {
   }
 }
 
-// ── Stats row ─────────────────────────────────────────────────────────────────
+// ── Hero card ──────────────────────────────────────────────────────────────────
 
-class _StatsRow extends StatelessWidget {
-  final dynamic summary;
-
-  const _StatsRow({required this.summary});
+class _HeroCard extends StatelessWidget {
+  final ProgressSummary summary;
+  const _HeroCard({required this.summary});
 
   @override
   Widget build(BuildContext context) {
-    final avgPct = (summary.avgScorePercentage * 100).round();
+    final pct = summary.avgScorePercentage.round();
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Left — big number + label + streak badge
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${summary.totalKnownCards}',
+                  style: const TextStyle(
+                    fontSize: 44,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'thẻ đã thuộc',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                if (summary.currentStreak > 0) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('🔥', style: TextStyle(fontSize: 13)),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${summary.currentStreak} ngày liên tiếp',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Right — progress ring
+          SizedBox(
+            width: 72,
+            height: 72,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CircularProgressIndicator(
+                  value: summary.avgScorePercentage / 100,
+                  backgroundColor: Colors.white.withValues(alpha: 0.25),
+                  color: Colors.white,
+                  strokeWidth: 6,
+                  strokeCap: StrokeCap.round,
+                ),
+                Center(
+                  child: Text(
+                    '$pct%',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Mini stats row ─────────────────────────────────────────────────────────────
+
+class _MiniStatsRow extends StatelessWidget {
+  final ProgressSummary summary;
+  const _MiniStatsRow({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    final avg = summary.avgScorePercentage.round();
     return Row(
       children: [
-        _StatCard(
-            label: 'Thẻ biết',
-            value: '${summary.totalKnownCards}'),
+        _MiniCard(value: '${summary.totalQuizzesTaken}', label: 'Quiz đã làm'),
         const SizedBox(width: 10),
-        _StatCard(
-            label: 'Quiz làm',
-            value: '${summary.totalQuizzesTaken}'),
+        _MiniCard(value: '$avg%', label: 'Điểm trung bình'),
         const SizedBox(width: 10),
-        _StatCard(label: 'Điểm TB', value: '$avgPct%'),
+        _MiniCard(value: '${summary.totalStudySets}', label: 'Bộ học'),
       ],
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String label;
+class _MiniCard extends StatelessWidget {
   final String value;
-
-  const _StatCard({required this.label, required this.value});
+  final String label;
+  const _MiniCard({required this.value, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+        padding:
+            const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -162,29 +275,49 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ── Bar chart ─────────────────────────────────────────────────────────────────
+// ── Weekly bar chart ───────────────────────────────────────────────────────────
 
 class _WeeklyBarChart extends StatelessWidget {
   final List<DailyStudy> data;
-
   const _WeeklyBarChart({required this.data});
+
+  /// 7 ngày cố định nếu data rỗng
+  static const _fallback = [
+    DailyStudy(day: 'T2', cardsStudied: 0),
+    DailyStudy(day: 'T3', cardsStudied: 0),
+    DailyStudy(day: 'T4', cardsStudied: 0),
+    DailyStudy(day: 'T5', cardsStudied: 0),
+    DailyStudy(day: 'T6', cardsStudied: 0),
+    DailyStudy(day: 'T7', cardsStudied: 0),
+    DailyStudy(day: 'CN', cardsStudied: 0),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final maxY = data
+    final days = data.isEmpty ? _fallback : data;
+    // Index của ngày có nhiều thẻ nhất → highlight hôm nay (index cuối cùng != 0)
+    int todayIdx = days.length - 1;
+    for (int i = days.length - 1; i >= 0; i--) {
+      if (days[i].cardsStudied > 0) {
+        todayIdx = i;
+        break;
+      }
+    }
+
+    final maxVal = days
         .map((d) => d.cardsStudied.toDouble())
         .fold(0.0, (a, b) => a > b ? a : b);
 
     return Container(
-      height: 180,
-      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+      height: 160,
+      padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
       decoration: BoxDecoration(
         color: AppColors.surfaceDim,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: BarChart(
         BarChartData(
-          maxY: maxY < 5 ? 10 : maxY * 1.2,
+          maxY: maxVal < 5 ? 10 : maxVal * 1.25,
           backgroundColor: AppColors.surfaceDim,
           borderData: FlBorderData(show: false),
           gridData: FlGridData(
@@ -199,36 +332,31 @@ class _WeeklyBarChart extends StatelessWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final i = value.toInt();
-                  if (i < 0 || i >= data.length) {
+                reservedSize: 22,
+                getTitlesWidget: (v, _) {
+                  final i = v.toInt();
+                  if (i < 0 || i >= days.length) {
                     return const SizedBox.shrink();
                   }
+                  final isToday = i == todayIdx;
                   return Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      data[i].label,
-                      style: AppTextStyles.monoSmall,
+                      days[i].day,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight:
+                            isToday ? FontWeight.w800 : FontWeight.w600,
+                        color: isToday ? _kTodayColor : AppColors.textSecondary,
+                        fontFamily: 'monospace',
+                      ),
                     ),
                   );
                 },
-                reservedSize: 22,
               ),
             ),
             leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 28,
-                getTitlesWidget: (value, meta) {
-                  if (value == 0 || value == meta.max) {
-                    return Text(
-                      value.toInt().toString(),
-                      style: AppTextStyles.monoSmall,
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
+              sideTitles: SideTitles(showTitles: false),
             ),
             rightTitles: AxisTitles(
               sideTitles: SideTitles(showTitles: false),
@@ -237,108 +365,91 @@ class _WeeklyBarChart extends StatelessWidget {
               sideTitles: SideTitles(showTitles: false),
             ),
           ),
-          barGroups: List.generate(
-            data.length,
-            (i) => BarChartGroupData(
+          barGroups: List.generate(days.length, (i) {
+            final isToday = i == todayIdx;
+            return BarChartGroupData(
               x: i,
               barRods: [
                 BarChartRodData(
-                  toY: data[i].cardsStudied.toDouble(),
-                  color: AppColors.primary,
-                  width: 16,
-                  borderRadius: BorderRadius.circular(2),
+                  toY: days[i].cardsStudied.toDouble(),
+                  color:
+                      isToday ? _kTodayColor : AppColors.primary,
+                  width: 18,
+                  borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(4)),
                 ),
               ],
-            ),
-          ),
+            );
+          }),
         ),
       ),
     );
   }
 }
 
-// ── Pie chart ─────────────────────────────────────────────────────────────────
+// ── Per-set progress item ──────────────────────────────────────────────────────
 
-class _KnownPieChart extends StatelessWidget {
-  final int known;
-  final int unknown;
+class _SetProgressItem extends StatelessWidget {
+  final StudySetProgress progress;
+  const _SetProgressItem({required this.progress});
 
-  const _KnownPieChart({required this.known, required this.unknown});
+  Color _barColor(double rate) {
+    if (rate >= 0.6) return AppColors.known;
+    if (rate >= 0.3) return AppColors.warning;
+    return AppColors.primary;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 180,
-      child: PieChart(
-        PieChartData(
-          sections: [
-            PieChartSectionData(
-              color: AppColors.known,
-              value: known.toDouble(),
-              title: '$known',
-              radius: 60,
-              titleStyle: AppTextStyles.monoSmall
-                  .copyWith(color: Colors.white),
-            ),
-            if (unknown > 0)
-              PieChartSectionData(
-                color: AppColors.unknown,
-                value: unknown.toDouble(),
-                title: '$unknown',
-                radius: 60,
-                titleStyle: AppTextStyles.monoSmall
-                    .copyWith(color: Colors.white),
+    final rate = progress.completionRate;
+    final pct = (rate * 100).round();
+    final color = _barColor(rate);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  progress.studySetTitle,
+                  style: AppTextStyles.h3,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-          ],
-          centerSpaceRadius: 0,
-          sectionsSpace: 2,
-        ),
-      ),
-    );
-  }
-}
-
-class _PieLegend extends StatelessWidget {
-  final int known;
-  final int unknown;
-
-  const _PieLegend({required this.known, required this.unknown});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _LegendDot(color: AppColors.known, label: 'Biết ($known)'),
-        const SizedBox(width: 16),
-        _LegendDot(
-            color: AppColors.unknown, label: 'Chưa biết ($unknown)'),
-      ],
-    );
-  }
-}
-
-class _LegendDot extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _LegendDot({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+              const SizedBox(width: 8),
+              Text(
+                '$pct%',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(width: 6),
-        Text(label, style: AppTextStyles.caption),
-      ],
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: rate,
+              minHeight: 6,
+              backgroundColor: AppColors.border,
+              valueColor: AlwaysStoppedAnimation(color),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${progress.knownCards} / ${progress.totalCards} thẻ biết',
+            style: AppTextStyles.caption,
+          ),
+          const Divider(height: 24, color: AppColors.border),
+        ],
+      ),
     );
   }
 }

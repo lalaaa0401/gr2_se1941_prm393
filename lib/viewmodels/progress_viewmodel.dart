@@ -1,58 +1,53 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../models/study_progress.dart';
 import '../services/api_service.dart';
 
-/// Điểm dữ liệu cho một ngày trong tuần — dùng bởi bar chart.
-class DailyStudy {
-  final String label; // e.g. 'T2', 'T3', ...
-  final int cardsStudied;
-
-  const DailyStudy(this.label, this.cardsStudied);
-}
-
 /// T3-P5-01 – ViewModel cho trang tiến độ học tập.
-///
-/// Dùng mock data cho đến khi backend sẵn sàng (T3);
-/// swap `_loadMock()` thành `_apiService.getProgressSummary()` khi API online.
 class ProgressViewModel extends ChangeNotifier {
-  // ignore: unused_field
   final ApiService _apiService;
 
   ProgressSummary? _summary;
-  List<DailyStudy> _weeklyStudy = [];
+  List<StudySetProgress> _setProgress = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   ProgressViewModel(this._apiService);
 
   ProgressSummary? get summary => _summary;
-  List<DailyStudy> get weeklyStudy => _weeklyStudy;
+  List<StudySetProgress> get setProgress => _setProgress;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   Future<void> loadProgress() async {
-    if (_isLoading || _summary != null) return;
+    if (_isLoading) return;
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      // Load summary (streak + weekly activity) và per-set progress song song
+      final results = await Future.wait([
+        _apiService.getProgressSummary(),
+        _apiService.getProgressSets(),
+      ]);
+      _summary = results[0] as ProgressSummary;
+      _setProgress = results[1] as List<StudySetProgress>;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message']?.toString() ??
+          'Lỗi kết nối. Vui lòng thử lại.';
+    } catch (e) {
+      _errorMessage = 'Đã có lỗi xảy ra.';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
-    _summary = ProgressSummary(
-      totalKnownCards: 42,
-      totalQuizzesTaken: 8,
-      avgScorePercentage: 0.73,
-      totalStudySets: 4,
-    );
-
-    _weeklyStudy = const [
-      DailyStudy('T2', 12),
-      DailyStudy('T3', 8),
-      DailyStudy('T4', 15),
-      DailyStudy('T5', 5),
-      DailyStudy('T6', 20),
-      DailyStudy('T7', 0),
-      DailyStudy('CN', 0),
-    ];
-
-    _isLoading = false;
-    notifyListeners();
+  /// Refresh — reset state rồi load lại
+  Future<void> refresh() async {
+    _summary = null;
+    _setProgress = [];
+    await loadProgress();
   }
 }

@@ -107,11 +107,22 @@ class ApiService {
     }
   }
 
-  /// GET /api/progress/summary → ProgressSummary
+  /// GET /api/progress/summary → ProgressSummary (bao gồm streak + weeklyActivity)
   Future<ProgressSummary> getProgressSummary() async {
     final response = await _dio.get('/api/progress/summary');
     if (response.data['success'] == true) {
       return ProgressSummary.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['message']);
+  }
+
+  /// GET /api/progress/sets → List<StudySetProgress>
+  Future<List<StudySetProgress>> getProgressSets() async {
+    final response = await _dio.get('/api/progress/sets');
+    if (response.data['success'] == true) {
+      return (response.data['data'] as List)
+          .map((e) => StudySetProgress.fromJson(e))
+          .toList();
     }
     throw Exception(response.data['message']);
   }
