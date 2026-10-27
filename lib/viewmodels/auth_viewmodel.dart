@@ -83,6 +83,30 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  /// Cập nhật fullName qua PUT /auth/me
+  Future<bool> updateProfile(String fullName) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final updated = await _apiService.updateMe(fullName);
+      _currentUser = updated;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message']?.toString() ?? AppStrings.errorNetwork;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = _extractMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Clear session và xóa token khỏi SharedPreferences.
   Future<void> logout() async {
     _currentUser = null;
