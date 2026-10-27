@@ -140,7 +140,7 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.close),
-                          onPressed: () { if (context.canPop()) context.pop(); else context.go(AppRoutes.home); },
+                          onPressed: () { if (context.canPop()) context.pop(); else context.go('/home'); },
                           color: AppColors.textSecondary,
                           iconSize: 22,
                         ),
@@ -178,7 +178,7 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.close),
-                        onPressed: () { if (context.canPop()) context.pop(); else context.go(AppRoutes.home); },
+                        onPressed: () { if (context.canPop()) context.pop(); else context.go('/home'); },
                         color: AppColors.textSecondary,
                         iconSize: 22,
                         padding: EdgeInsets.zero,
