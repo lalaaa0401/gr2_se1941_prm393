@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
+import '../../core/app_router.dart';
 import '../../core/app_text_styles.dart';
 import '../../viewmodels/study_viewmodel.dart';
 
@@ -123,6 +124,32 @@ class QuizResultPage extends StatelessWidget {
                             child: const Text('Học lại flashcard'),
                           ),
                           const SizedBox(height: 10),
+
+                          // Ôn lại thẻ sai — chỉ hiện khi có thẻ sai
+                          if (vm.wrongCards.isNotEmpty) ...[
+                            ElevatedButton(
+                              onPressed: () =>
+                                  context.go(AppRoutes.reviewWrong),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.unknownLight,
+                                foregroundColor: AppColors.unknown,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                textStyle: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.01,
+                                ),
+                              ),
+                              child: Text(
+                                  'Ôn lại thẻ sai (${vm.wrongCards.length})'),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
 
                           // Làm quiz lại
                           OutlinedButton(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../core/app_text_styles.dart';
+import '../core/home_tab_controller.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/progress_viewmodel.dart';
 
@@ -46,6 +47,9 @@ class AvatarButton extends StatelessWidget {
   }
 
   void _showProfileSheet(BuildContext context, AuthViewModel auth) {
+    // Capture trước khi mở sheet — sheet builder dùng context khác, không có provider
+    final homeTab = context.read<HomeTabController>();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -55,6 +59,7 @@ class AvatarButton extends StatelessWidget {
           ChangeNotifierProvider.value(value: auth),
           ChangeNotifierProvider.value(
               value: context.read<ProgressViewModel>()),
+          ChangeNotifierProvider.value(value: homeTab),
         ],
         child: const _QuickProfileSheet(),
       ),
@@ -163,7 +168,11 @@ class _QuickProfileSheet extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(context); // đóng sheet trước
+                // Chuyển sang tab Hồ sơ (index 3)
+                context.read<HomeTabController>().switchTo(3);
+              },
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primaryMuted),

@@ -187,6 +187,19 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
+  /// GET /api/progress/{setId} → danh sách tiến độ từng thẻ trong bộ học
+  /// Mỗi phần tử: { "flashcard": {...}, "status": "UNKNOWN"|"LEARNING"|"KNOWN" }
+  Future<List<Map<String, dynamic>>> getSetProgress(int setId) async {
+    final response = await _dio.get('/api/progress/$setId');
+    if (response.data['success'] == true) {
+      return List<Map<String, dynamic>>.from(
+        (response.data['data'] as List)
+            .map((e) => Map<String, dynamic>.from(e as Map)),
+      );
+    }
+    throw Exception(response.data['message']);
+  }
+
   /// GET /api/quiz-results/mine → lịch sử quiz của user
   Future<List<QuizHistoryItem>> getMyQuizResults() async {
     final response = await _dio.get('/api/quiz-results/mine');
