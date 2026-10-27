@@ -15,6 +15,20 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  void _showEditModal(BuildContext context) {
+    final auth = context.read<AuthViewModel>();
+    final ctrl = TextEditingController(text: auth.currentUser?.fullName ?? '');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: auth,
+        child: _EditProfileSheet(controller: ctrl),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -143,7 +157,30 @@ class _ProfilePageState extends State<ProfilePage> {
                           ],
 
                           // Account info
-                          _SectionLabel('Tài khoản'),
+                          Row(
+                            children: [
+                              const Expanded(child: _SectionLabel('Tài khoản')),
+                              GestureDetector(
+                                onTap: () => _showEditModal(context),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryLight,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Chỉnh sửa',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 8),
                           Container(
                             decoration: BoxDecoration(
@@ -406,6 +443,173 @@ class _ActivityRow extends StatelessWidget {
         if (!isLast)
           const Divider(height: 1, color: AppColors.border),
       ],
+    );
+  }
+}
+
+// ── Edit profile bottom sheet ──────────────────────────────────────────────────
+
+class _EditProfileSheet extends StatefulWidget {
+  final TextEditingController controller;
+  const _EditProfileSheet({required this.controller});
+
+  @override
+  State<_EditProfileSheet> createState() => _EditProfileSheetState();
+}
+
+class _EditProfileSheetState extends State<_EditProfileSheet> {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthViewModel>(
+      builder: (context, auth, _) {
+        return Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                // Title row
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Chỉnh sửa hồ sơ',
+                          style: AppTextStyles.h2),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceDim,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.close,
+                            size: 16, color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Email (read-only)
+                const Text('EMAIL', style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8, color: AppColors.textSecondary,
+                )),
+                const SizedBox(height: 6),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 13),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceDim,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    auth.currentUser?.email ?? '—',
+                    style: const TextStyle(
+                        fontSize: 14, color: AppColors.textDisabled),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                // Full name (editable)
+                const Text('HỌ VÀ TÊN', style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8, color: AppColors.textSecondary,
+                )),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: widget.controller,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.surfaceDim,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: AppColors.border, width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: AppColors.border, width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                          color: AppColors.primary, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 13),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Save button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: auth.isLoading
+                        ? null
+                        : () async {
+                            final name = widget.controller.text.trim();
+                            if (name.isEmpty) return;
+                            final ok = await auth.updateProfile(name);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(ok
+                                      ? 'Đã cập nhật hồ sơ'
+                                      : (auth.errorMessage ?? 'Lỗi')),
+                                  backgroundColor:
+                                      ok ? AppColors.success : AppColors.error,
+                                ),
+                              );
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                    ),
+                    child: auth.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Lưu thay đổi',
+                            style: TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
