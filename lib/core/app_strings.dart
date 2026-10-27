@@ -44,6 +44,7 @@ class AppStrings {
   // Navigation
   static const String navStudySets  = 'Học';
   static const String navProgress   = 'Tiến độ';
+  static const String navCreate     = 'Tạo mới';
   static const String navChat       = 'Chat';
   static const String navNotifications = 'Thông báo';
   static const String navProfile    = 'Hồ sơ';

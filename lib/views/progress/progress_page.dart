@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_text_styles.dart';
 import '../../models/study_progress.dart';
 import '../../viewmodels/progress_viewmodel.dart';
+import '../../widgets/notification_bell.dart';
 
 /// Màu highlight bar hôm nay — burnt sienna (accent riêng cho chart)
 const Color _kTodayColor = Color(0xFFB84A1D);
@@ -68,7 +69,15 @@ class _ProgressPageState extends State<ProgressPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Tiến độ học tập', style: AppTextStyles.h1),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                              'Tiến độ học tập',
+                              style: AppTextStyles.h1),
+                          const NotificationBell(),
+                        ],
+                      ),
                       const SizedBox(height: 16),
                       if (s != null) ...[
                         _HeroCard(summary: s),

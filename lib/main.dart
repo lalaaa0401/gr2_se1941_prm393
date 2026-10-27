@@ -13,6 +13,7 @@ import 'viewmodels/study_viewmodel.dart';
 import 'viewmodels/notification_viewmodel.dart';
 import 'viewmodels/progress_viewmodel.dart';
 import 'viewmodels/chat_viewmodel.dart';
+import 'viewmodels/create_study_set_viewmodel.dart';
 
 /// Key toàn cục để hiển thị SnackBar từ bất kỳ đâu (qua ErrorBus).
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -31,6 +32,8 @@ void main() async {
             create: (_) => NotificationViewModel(apiService)),
         ChangeNotifierProvider(create: (_) => ProgressViewModel(apiService)),
         ChangeNotifierProvider(create: (_) => ChatViewModel(apiService)),
+        ChangeNotifierProvider(
+            create: (_) => CreateStudySetViewModel(apiService)),
       ],
       child: const QuizLabApp(),
     ),

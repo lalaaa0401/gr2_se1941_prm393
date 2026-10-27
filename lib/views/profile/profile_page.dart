@@ -6,6 +6,7 @@ import '../../core/app_router.dart';
 import '../../core/app_text_styles.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/progress_viewmodel.dart';
+import '../../widgets/notification_bell.dart';
 
 /// Trang hồ sơ người dùng – v5 layout.
 ///
@@ -79,10 +80,16 @@ class _ProfileBodyState extends State<_ProfileBody> {
           children: [
             // [A] Cream header — avatar, tên, email
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Bell row — góc phải
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: const [NotificationBell()],
+                  ),
+                  const SizedBox(height: 8),
                   // Avatar vuông 64×64, radius 16, nền primary, initials trắng
                   Container(
                     width: 64,
