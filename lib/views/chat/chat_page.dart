@@ -58,26 +58,54 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Bình luận', style: AppTextStyles.h1),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      ),
-      body: Consumer<ChatViewModel>(
-        builder: (context, vm, _) {
-          return Column(
-            children: [
-              Expanded(child: _buildBody(context, vm)),
-              _InputRow(
-                controller: _controller,
-                isSending: vm.isSending,
-                onSend: () => _send(vm),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // [A] Cream header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 16, 24, 16),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.textPrimary,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  Text('Bình luận', style: AppTextStyles.h1),
+                ],
               ),
-            ],
-          );
-        },
+            ),
+
+            // [B] White sheet
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Consumer<ChatViewModel>(
+                  builder: (context, vm, _) {
+                    return Column(
+                      children: [
+                        Expanded(child: _buildBody(context, vm)),
+                        _InputRow(
+                          controller: _controller,
+                          isSending: vm.isSending,
+                          onSend: () => _send(vm),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
