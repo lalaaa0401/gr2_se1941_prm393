@@ -148,7 +148,7 @@ class _MessageBubble extends StatelessWidget {
           color:
               isOwn ? AppColors.primaryLight : AppColors.surface,
           border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           crossAxisAlignment:
@@ -214,17 +214,17 @@ class _InputRow extends StatelessWidget {
                 filled: true,
                 fillColor: AppColors.background,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide:
                       const BorderSide(color: AppColors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide:
                       const BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(
                       color: AppColors.primary, width: 1.5),
                 ),
@@ -246,7 +246,7 @@ class _InputRow extends StatelessWidget {
             style: IconButton.styleFrom(
               backgroundColor: AppColors.primaryLight,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),

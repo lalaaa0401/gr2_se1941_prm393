@@ -331,7 +331,7 @@ class _LegendDot extends StatelessWidget {
           height: 10,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(4),
+            shape: BoxShape.circle,
           ),
         ),
         const SizedBox(width: 6),
