@@ -54,7 +54,7 @@ class QuizOptionTile extends StatelessWidget {
             color: border.color,
             width: border.width,
           ),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(14),
         ),
         child: Text(
           text,
@@ -68,7 +68,7 @@ class QuizOptionTile extends StatelessWidget {
         QuizOptionState.idle => AppColors.surface,
         QuizOptionState.selected => AppColors.primaryLight,
         QuizOptionState.correct => AppColors.knownLight,
-        QuizOptionState.incorrect => const Color(0xFFFEF2F2),
+        QuizOptionState.incorrect => AppColors.unknownLight,
         QuizOptionState.disabled => AppColors.surfaceDim,
       };
 

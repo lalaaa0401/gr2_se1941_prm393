@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -14,24 +15,21 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, auth, _) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: const Text('Hồ sơ', style: AppTextStyles.h1),
-            backgroundColor: AppColors.surface,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-          ),
-          body: auth.currentUser == null
-              ? const Center(
-                  child: Text(
-                    'Chưa đăng nhập',
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                )
-              : _ProfileBody(auth: auth),
-        );
+        if (auth.currentUser == null) {
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              child: Center(
+                child: Text(
+                  'Chưa đăng nhập',
+                  style: AppTextStyles.body
+                      .copyWith(color: AppColors.textSecondary),
+                ),
+              ),
+            ),
+          );
+        }
+        return _ProfileBody(auth: auth);
       },
     );
   }
@@ -52,75 +50,131 @@ class _ProfileBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = auth.currentUser!;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: AppColors.primaryLight,
-            backgroundImage:
-                user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
-            child: user.avatarUrl == null
-                ? Text(
-                    _initials(user.fullName),
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // [A] Header: avatar, name, email
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Avatar — square container 80×80, radius 14
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 16),
-          Text(user.fullName, style: AppTextStyles.h1),
-          const SizedBox(height: 4),
-          Text(
-            user.email,
-            style: const TextStyle(
-                color: AppColors.textSecondary, fontSize: 14),
-          ),
-          const SizedBox(height: 32),
-
-          // Info card
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Column(
-              children: [
-                _InfoRow(label: 'Email', value: user.email),
-                const Divider(color: AppColors.border, height: 1),
-                _InfoRow(label: 'Họ và tên', value: user.fullName),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Logout
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () async {
-                await auth.logout();
-                if (context.mounted) context.go(AppRoutes.login);
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4)),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: user.avatarUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: CachedNetworkImage(
+                              imageUrl: user.avatarUrl!,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
+                              ),
+                              errorWidget: (context, url, error) => Center(
+                                child: Text(
+                                  _initials(user.fullName),
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              _initials(user.fullName),
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(user.fullName, style: AppTextStyles.h2),
+                  const SizedBox(height: 4),
+                  Text(user.email, style: AppTextStyles.caption),
+                ],
               ),
-              child: Text(AppStrings.logout),
             ),
-          ),
-        ],
+
+            // [B] White sheet
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Info card
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceDim,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            _InfoRow(label: 'Email', value: user.email),
+                            const Divider(
+                                color: AppColors.border, height: 1),
+                            _InfoRow(
+                                label: 'Họ và tên', value: user.fullName),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Spacer(),
+
+                      // Logout button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () async {
+                            await auth.logout();
+                            if (context.mounted) {
+                              context.go(AppRoutes.login);
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.error,
+                            side: const BorderSide(
+                                color: AppColors.error, width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text(AppStrings.logout),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
