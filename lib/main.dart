@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'core/app_colors.dart';
 import 'core/app_router.dart';
@@ -80,6 +81,7 @@ class _QuizLabAppState extends State<QuizLabApp> {
           surface: AppColors.background,
         ),
         scaffoldBackgroundColor: AppColors.background,
+        textTheme: GoogleFonts.interTextTheme(),
         useMaterial3: true,
       ),
       routerConfig: appRouter,
