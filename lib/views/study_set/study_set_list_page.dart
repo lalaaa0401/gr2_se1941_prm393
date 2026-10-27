@@ -7,6 +7,7 @@ import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/progress_viewmodel.dart';
 import '../../viewmodels/study_set_viewmodel.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/avatar_sheet.dart';
 import '../../widgets/study_set_card.dart';
 
 class StudySetListPage extends StatefulWidget {
@@ -32,13 +33,6 @@ class _StudySetListPageState extends State<StudySetListPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  String _getInitials(String fullName) {
-    final parts = fullName.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty || parts.first.isEmpty) return '?';
-    if (parts.length == 1) return parts.first[0].toUpperCase();
-    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 
   @override
@@ -133,7 +127,6 @@ class _StudySetListPageState extends State<StudySetListPage> {
     return Consumer<AuthViewModel>(
       builder: (context, auth, _) {
         final name = auth.currentUser?.fullName ?? 'Bạn';
-        final initials = _getInitials(name);
         return Padding(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
           child: Row(
@@ -155,23 +148,7 @@ class _StudySetListPageState extends State<StudySetListPage> {
                 children: [
                   const NotificationBell(),
                   const SizedBox(width: 8),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      initials,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  const AvatarButton(),
                 ],
               ),
             ],
