@@ -253,19 +253,16 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: ElevatedButton(
                           onPressed: () =>
                               _advance(context, false, flashcards),
-                          style: OutlinedButton.styleFrom(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.unknownLight,
                             foregroundColor: AppColors.unknown,
-                            side: const BorderSide(
-                              color: AppColors.unknown,
-                              width: 1.5,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
                             elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                             padding:
                                 const EdgeInsets.symmetric(vertical: 16),
                             textStyle: const TextStyle(
@@ -282,11 +279,11 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
                           onPressed: () =>
                               _advance(context, true, flashcards),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.known,
-                            foregroundColor: Colors.white,
+                            backgroundColor: AppColors.knownLight,
+                            foregroundColor: AppColors.known,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             padding:
                                 const EdgeInsets.symmetric(vertical: 16),
