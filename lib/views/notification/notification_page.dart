@@ -38,44 +38,74 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Thông báo', style: AppTextStyles.h1),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          Consumer<NotificationViewModel>(
-            builder: (context, vm, _) => IconButton(
-              icon: const Icon(Icons.done_all),
-              onPressed: vm.markAllAsRead,
-              tooltip: 'Đánh dấu tất cả đã đọc',
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // [A] Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Row(
+                children: [
+                  Text('Thông báo', style: AppTextStyles.h1),
+                  const Spacer(),
+                  Consumer<NotificationViewModel>(
+                    builder: (context, vm, _) => TextButton(
+                      onPressed: vm.markAllAsRead,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Đánh dấu đọc',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      body: Consumer<NotificationViewModel>(
-        builder: (context, vm, _) {
-          if (vm.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (vm.notifications.isEmpty) {
-            return const Center(
-              child: Text(AppStrings.emptyNotifications),
-            );
-          }
-          return ListView.builder(
-            itemCount: vm.notifications.length,
-            itemBuilder: (context, index) {
-              final n = vm.notifications[index];
-              return _NotificationTile(
-                notification: n,
-                formattedDate: _formatDate(n.createdAt),
-                onTap: () => vm.markAsRead(n.id),
-              );
-            },
-          );
-        },
+
+            // [B] White sheet
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: Consumer<NotificationViewModel>(
+                  builder: (context, vm, _) {
+                    if (vm.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (vm.notifications.isEmpty) {
+                      return const Center(
+                        child: Text(AppStrings.emptyNotifications),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: vm.notifications.length,
+                      itemBuilder: (context, index) {
+                        final n = vm.notifications[index];
+                        return _NotificationTile(
+                          notification: n,
+                          formattedDate: _formatDate(n.createdAt),
+                          onTap: () => vm.markAsRead(n.id),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -94,18 +124,20 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isRead = notification.isRead;
     return ListTile(
-      tileColor:
-          notification.isRead ? AppColors.surface : AppColors.primaryLight,
-      leading: const Icon(
-        Icons.notifications_outlined,
-        color: AppColors.textSecondary,
+      tileColor: isRead ? AppColors.surface : AppColors.primaryLight,
+      leading: Icon(
+        isRead
+            ? Icons.notifications_outlined
+            : Icons.notifications_rounded,
+        color: isRead ? AppColors.textSecondary : AppColors.primary,
       ),
       title: Text(
         notification.title,
-        style: notification.isRead
-            ? null
-            : const TextStyle(fontWeight: FontWeight.bold),
+        style: isRead
+            ? AppTextStyles.body
+            : AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
       ),
       subtitle: Text(
         notification.body,

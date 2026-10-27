@@ -26,102 +26,137 @@ class QuizResultPage extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: const Text('Kết quả quiz', style: AppTextStyles.h2),
-            backgroundColor: AppColors.surface,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-          ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 24),
+          body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Khung điểm số
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 32, horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+                // [A] Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 8),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$score / $total',
-                        style: AppTextStyles.monoLarge.copyWith(
-                          fontSize: 36,
-                          color: passed
-                              ? AppColors.known
-                              : AppColors.unknown,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Đúng $percent%',
-                        style: AppTextStyles.mono
+                        'Kết quả quiz',
+                        style: AppTextStyles.caption
                             .copyWith(color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 4),
-                      if (total > 0)
-                        Text(
-                          '$score câu đúng · ${total - score} câu sai',
-                          style: AppTextStyles.caption,
-                        ),
+                      Text(
+                        passed ? '🎉 Xuất sắc!' : 'Cố gắng hơn nào!',
+                        style: AppTextStyles.h1,
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
 
-                // Học lại flashcard
-                ElevatedButton(
-                  onPressed: () =>
-                      context.go('/study/$studySetId/flashcard'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                // [B] White sheet
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(32)),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.01,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Khung điểm số
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 32, horizontal: 24),
+                            decoration: BoxDecoration(
+                              color: passed
+                                  ? AppColors.knownLight
+                                  : AppColors.unknownLight,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  '$score/$total',
+                                  style: AppTextStyles.monoLarge.copyWith(
+                                    fontSize: 48,
+                                    color: passed
+                                        ? AppColors.known
+                                        : AppColors.unknown,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Đúng $percent%',
+                                  style: AppTextStyles.mono
+                                      .copyWith(color: AppColors.textSecondary),
+                                ),
+                                const SizedBox(height: 4),
+                                if (total > 0)
+                                  Text(
+                                    '$score câu đúng · ${total - score} câu sai',
+                                    style: AppTextStyles.caption,
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Học lại flashcard
+                          ElevatedButton(
+                            onPressed: () =>
+                                context.go('/study/$studySetId/flashcard'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
+                              textStyle: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.01,
+                              ),
+                            ),
+                            child: const Text('Học lại flashcard'),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Làm quiz lại
+                          OutlinedButton(
+                            onPressed: () =>
+                                context.go('/study/$studySetId/quiz'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textPrimary,
+                              side: const BorderSide(
+                                  color: AppColors.border, width: 1.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text('Làm quiz lại'),
+                          ),
+                          const SizedBox(height: 10),
+
+                          // Về trang chính
+                          TextButton(
+                            onPressed: () => context.go('/home'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.textSecondary,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text('Về trang chính'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: const Text('Học lại flashcard'),
-                ),
-                const SizedBox(height: 10),
-
-                // Làm quiz lại
-                OutlinedButton(
-                  onPressed: () => context.go('/study/$studySetId/quiz'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.border, width: 1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text('Làm quiz lại'),
-                ),
-                const SizedBox(height: 10),
-
-                // Về trang chính
-                TextButton(
-                  onPressed: () => context.go('/home'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text('Về trang chính'),
                 ),
               ],
             ),

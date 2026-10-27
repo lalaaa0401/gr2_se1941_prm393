@@ -30,58 +30,76 @@ class _ProgressPageState extends State<ProgressPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Tiến độ', style: AppTextStyles.h1),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-      ),
-      body: Consumer<ProgressViewModel>(
-        builder: (context, vm, _) {
-          if (vm.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // [A] Header
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
+              child: Text('Tiến độ học tập', style: AppTextStyles.h1),
+            ),
 
-          final summary = vm.summary;
-          if (summary == null) {
-            return const Center(child: Text('Không có dữ liệu tiến độ.'));
-          }
+            // [B] White sheet
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: Consumer<ProgressViewModel>(
+                  builder: (context, vm, _) {
+                    if (vm.isLoading) {
+                      return const Center(
+                          child: CircularProgressIndicator());
+                    }
 
-          final unknown =
-              summary.totalStudySets > 0 &&
-                      summary.totalKnownCards > 0
-                  ? (summary.totalKnownCards * 0.4).round()
-                  : 0;
-          final known = summary.totalKnownCards;
+                    final summary = vm.summary;
+                    if (summary == null) {
+                      return const Center(
+                          child: Text('Không có dữ liệu tiến độ.'));
+                    }
 
-          return ListView(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 12),
-            children: [
-              // ── Stats cards ──────────────────────────────────────
-              _StatsRow(summary: summary),
-              const SizedBox(height: 20),
+                    final unknown =
+                        summary.totalStudySets > 0 &&
+                                summary.totalKnownCards > 0
+                            ? (summary.totalKnownCards * 0.4).round()
+                            : 0;
+                    final known = summary.totalKnownCards;
 
-              // ── Bar chart — học theo ngày ─────────────────────────
-              const Text('Thẻ học theo ngày', style: AppTextStyles.h2),
-              const SizedBox(height: 12),
-              _WeeklyBarChart(data: vm.weeklyStudy),
-              const SizedBox(height: 24),
+                    return ListView(
+                      padding: const EdgeInsets.all(24),
+                      children: [
+                        // ── Stats cards ──────────────────────────────
+                        _StatsRow(summary: summary),
+                        const SizedBox(height: 20),
 
-              // ── Pie chart — biết / chưa biết ──────────────────────
-              if (known > 0 || unknown > 0) ...[
-                const Text('Tỷ lệ biết / chưa biết',
-                    style: AppTextStyles.h2),
-                const SizedBox(height: 12),
-                _KnownPieChart(known: known, unknown: unknown),
-                const SizedBox(height: 12),
-                _PieLegend(known: known, unknown: unknown),
-                const SizedBox(height: 16),
-              ],
-            ],
-          );
-        },
+                        // ── Bar chart — học theo ngày ─────────────────
+                        const Text('Thẻ học theo ngày',
+                            style: AppTextStyles.h2),
+                        const SizedBox(height: 12),
+                        _WeeklyBarChart(data: vm.weeklyStudy),
+                        const SizedBox(height: 24),
+
+                        // ── Pie chart — biết / chưa biết ──────────────
+                        if (known > 0 || unknown > 0) ...[
+                          const Text('Tỷ lệ biết / chưa biết',
+                              style: AppTextStyles.h2),
+                          const SizedBox(height: 12),
+                          _KnownPieChart(known: known, unknown: unknown),
+                          const SizedBox(height: 12),
+                          _PieLegend(known: known, unknown: unknown),
+                          const SizedBox(height: 16),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -123,11 +141,10 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(4),
+          color: AppColors.surfaceDim,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: [
@@ -160,14 +177,13 @@ class _WeeklyBarChart extends StatelessWidget {
       height: 180,
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(4),
+        color: AppColors.surfaceDim,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: BarChart(
         BarChartData(
           maxY: maxY < 5 ? 10 : maxY * 1.2,
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.surfaceDim,
           borderData: FlBorderData(show: false),
           gridData: FlGridData(
             show: true,
@@ -315,7 +331,7 @@ class _LegendDot extends StatelessWidget {
           height: 10,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
         const SizedBox(width: 6),

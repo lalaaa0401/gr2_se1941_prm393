@@ -135,13 +135,7 @@ class _QuizPageState extends State<QuizPage> {
 
         if (studySet == null || studySet.flashcards.isEmpty) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('Quiz', style: AppTextStyles.h2),
-              backgroundColor: AppColors.surface,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              iconTheme: const IconThemeData(color: AppColors.textPrimary),
-            ),
+            backgroundColor: AppColors.background,
             body: const Center(
               child: Text('Không có thẻ nào để tạo câu hỏi.'),
             ),
@@ -152,8 +146,9 @@ class _QuizPageState extends State<QuizPage> {
 
         if (_questions.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Quiz', style: AppTextStyles.h2)),
-            body: const Center(child: Text('Không thể tạo câu hỏi từ bộ học này.')),
+            backgroundColor: AppColors.background,
+            body: const Center(
+                child: Text('Không thể tạo câu hỏi từ bộ học này.')),
           );
         }
 
@@ -163,104 +158,133 @@ class _QuizPageState extends State<QuizPage> {
 
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: Text(studySet.title, style: AppTextStyles.h2),
-            backgroundColor: AppColors.surface,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            iconTheme: const IconThemeData(color: AppColors.textPrimary),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Tiến độ
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Câu ${_currentIdx + 1} / $total',
-                      style: AppTextStyles.mono,
-                    ),
-                    if (_answered)
-                      Text(
-                        '$_score đúng',
-                        style: AppTextStyles.mono
-                            .copyWith(color: AppColors.known),
+                // [A] Header row: back, counter, score
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: AppColors.textPrimary,
+                          size: 20,
+                        ),
+                        onPressed: () => context.pop(),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: AppColors.surfaceDim,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                      AppColors.primary),
-                  minHeight: 4,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                const SizedBox(height: 24),
-
-                // Câu hỏi
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    q.term,
-                    style: AppTextStyles.h2,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Lựa chọn
-                ...List.generate(
-                  q.options.length,
-                  (i) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: QuizOptionTile(
-                      text: q.options[i],
-                      state: _optionState(i),
-                      onTap: () => _selectOption(i),
-                    ),
-                  ),
-                ),
-
-                const Spacer(),
-
-                // Nút tiếp theo (chỉ hiện sau khi chọn đáp án)
-                if (_answered) ...[
-                  ElevatedButton(
-                    onPressed: _nextQuestion,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Câu ${_currentIdx + 1} / $total',
+                            style: AppTextStyles.mono,
+                          ),
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.01,
+                      if (_answered)
+                        Text(
+                          '$_score đúng',
+                          style: AppTextStyles.mono
+                              .copyWith(color: AppColors.known),
+                        )
+                      else
+                        const SizedBox(width: 44),
+                    ],
+                  ),
+                ),
+
+                // [B] Progress bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: AppColors.surfaceDim,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.primary),
+                    minHeight: 5,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+
+                // [C] White sheet
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(32)),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Câu hỏi
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              q.term,
+                              style: AppTextStyles.h2,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Lựa chọn
+                          ...List.generate(
+                            q.options.length,
+                            (i) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: QuizOptionTile(
+                                text: q.options[i],
+                                state: _optionState(i),
+                                onTap: () => _selectOption(i),
+                              ),
+                            ),
+                          ),
+
+                          const Spacer(),
+
+                          // Nút tiếp theo (chỉ hiện sau khi chọn đáp án)
+                          if (_answered) ...[
+                            ElevatedButton(
+                              onPressed: _nextQuestion,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 16),
+                                textStyle: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.01,
+                                ),
+                              ),
+                              child: Text(
+                                _currentIdx >= _questions.length - 1
+                                    ? 'Xem kết quả'
+                                    : 'Tiếp theo',
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        ],
                       ),
                     ),
-                    child: Text(
-                      _currentIdx >= _questions.length - 1
-                          ? 'Xem kết quả'
-                          : 'Tiếp theo',
-                    ),
                   ),
-                  const SizedBox(height: 12),
-                ],
+                ),
               ],
             ),
           ),
