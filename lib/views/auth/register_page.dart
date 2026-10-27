@@ -90,7 +90,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               const SizedBox(height: 48),
               const Text(
-                'QuizZone',
+                'QuizLab',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 20,

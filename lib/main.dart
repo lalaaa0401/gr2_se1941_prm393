@@ -31,19 +31,19 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProgressViewModel(apiService)),
         ChangeNotifierProvider(create: (_) => ChatViewModel(apiService)),
       ],
-      child: const QuizZoneApp(),
+      child: const QuizLabApp(),
     ),
   );
 }
 
-class QuizZoneApp extends StatefulWidget {
-  const QuizZoneApp({super.key});
+class QuizLabApp extends StatefulWidget {
+  const QuizLabApp({super.key});
 
   @override
-  State<QuizZoneApp> createState() => _QuizZoneAppState();
+  State<QuizLabApp> createState() => _QuizLabAppState();
 }
 
-class _QuizZoneAppState extends State<QuizZoneApp> {
+class _QuizLabAppState extends State<QuizLabApp> {
   StreamSubscription<String>? _errorSub;
 
   @override
@@ -71,7 +71,7 @@ class _QuizZoneAppState extends State<QuizZoneApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'QuizZone',
+      title: 'QuizLab',
       scaffoldMessengerKey: scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

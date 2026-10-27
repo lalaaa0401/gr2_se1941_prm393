@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Toàn bộ màu sắc của QuizZone
+/// Toàn bộ màu sắc của QuizLab
 class AppColors {
   AppColors._();
 

@@ -1,4 +1,4 @@
-# quizzone
+# QuizLab
 
 A new Flutter project.
 
