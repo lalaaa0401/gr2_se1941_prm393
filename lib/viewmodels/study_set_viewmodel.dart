@@ -9,6 +9,7 @@ class StudySetViewModel extends ChangeNotifier {
 
   List<StudySet> _studySets = [];
   List<StudySet> _filtered = [];
+  StudySet? _continueSet; // Set nên học tiếp
   bool _isLoading = false;
   String? _errorMessage;
   String _searchQuery = '';
@@ -17,6 +18,7 @@ class StudySetViewModel extends ChangeNotifier {
   StudySetViewModel(this._apiService);
 
   List<StudySet> get studySets => _filtered;
+  StudySet? get continueSet => _continueSet;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String? get selectedSubject => _selectedSubject;
@@ -38,7 +40,6 @@ class StudySetViewModel extends ChangeNotifier {
     }
   }
 
-  /// Tải danh sách study set từ API. Bỏ qua nếu đang loading hoặc đã có dữ liệu.
   Future<void> loadStudySets({bool forceRefresh = false}) async {
     if (_isLoading) return;
     if (!forceRefresh && _studySets.isNotEmpty) return;
@@ -48,19 +49,22 @@ class StudySetViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _studySets = await _apiService.getStudySets();
+      // Load study sets và "continue" set song song
+      final results = await Future.wait([
+        _apiService.getStudySets(),
+        _apiService.getStudySetToContinue(),
+      ]);
+      _studySets = results[0] as List<StudySet>;
+      _continueSet = results[1] as StudySet?;
       _applyFilters();
-      _isLoading = false;
-      notifyListeners();
     } on DioException catch (e) {
       _errorMessage = e.type == DioExceptionType.connectionError
           ? AppStrings.errorNetwork
           : (e.response?.data?['message']?.toString() ??
               AppStrings.errorUnknown);
-      _isLoading = false;
-      notifyListeners();
     } catch (e) {
       _errorMessage = AppStrings.errorUnknown;
+    } finally {
       _isLoading = false;
       notifyListeners();
     }
