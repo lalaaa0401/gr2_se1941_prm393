@@ -4,6 +4,10 @@ class AppStrings {
 
   // App
   static const String appName = 'QuizLab';
+  static const String splashTagline      = 'Học flashcard thông minh';
+  static const String loginSubtitle      = 'Tiếp tục hành trình học tập';
+  static const String registerSubtitle   = 'Tạo tài khoản miễn phí';
+  static const String homeTitle          = 'Bộ học của tôi';
 
   // Auth
   static const String login         = 'Đăng nhập';
