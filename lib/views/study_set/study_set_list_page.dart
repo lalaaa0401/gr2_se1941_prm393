@@ -6,6 +6,7 @@ import '../../core/app_strings.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/progress_viewmodel.dart';
 import '../../viewmodels/study_set_viewmodel.dart';
+import '../../widgets/notification_bell.dart';
 import '../../widgets/study_set_card.dart';
 
 class StudySetListPage extends StatefulWidget {
@@ -149,22 +150,29 @@ class _StudySetListPageState extends State<StudySetListPage> {
                   ),
                 ),
               ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const NotificationBell(),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),

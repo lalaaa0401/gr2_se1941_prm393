@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../viewmodels/notification_viewmodel.dart';
 import 'study_set/study_set_list_page.dart';
 import 'progress/progress_page.dart';
-import 'notification/notification_page.dart';
+import 'create/create_study_set_page.dart';
 import 'profile/profile_page.dart';
 import '../core/app_colors.dart';
 import '../core/app_strings.dart';
-import '../core/app_text_styles.dart';
 
-/// Màn hình chính với BottomNavigationBar 5 tabs
+/// Màn hình chính với BottomNavigationBar 4 tabs
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -20,13 +17,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  // Danh sách 5 page tương ứng với từng tab
+  // Danh sách 4 page tương ứng với từng tab
   static const List<Widget> _pages = [
     StudySetListPage(),
     ProgressPage(),
-    // ChatPage cần studySetId, dùng placeholder ở tab chat
-    _ChatTabPlaceholder(),
-    NotificationPage(),
+    CreateStudySetPage(),
     ProfilePage(),
   ];
 
@@ -37,86 +32,38 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: Consumer<NotificationViewModel>(
-        builder: (context, notifVm, _) => NavigationBar(
-          elevation: 0,
-          backgroundColor: AppColors.surface,
-          shadowColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          indicatorColor: AppColors.primaryLight,
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: (index) {
-            setState(() => _selectedIndex = index);
-          },
-          destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              selectedIcon: Icon(Icons.menu_book),
-              label: AppStrings.navStudySets,
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart),
-              label: AppStrings.navProgress,
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.chat_bubble_outline),
-              selectedIcon: Icon(Icons.chat_bubble),
-              label: AppStrings.navChat,
-            ),
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: notifVm.unreadCount > 0,
-                label: Text('${notifVm.unreadCount}', style: AppTextStyles.monoSmall),
-                child: const Icon(Icons.notifications_outlined),
-              ),
-              selectedIcon: Badge(
-                isLabelVisible: notifVm.unreadCount > 0,
-                label: Text('${notifVm.unreadCount}', style: AppTextStyles.monoSmall),
-                child: const Icon(Icons.notifications),
-              ),
-              label: AppStrings.navNotifications,
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: AppStrings.navProfile,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Placeholder cho Chat tab (ChatPage cần studySetId nên không dùng trực tiếp ở tab)
-class _ChatTabPlaceholder extends StatelessWidget {
-  const _ChatTabPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 48,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Chọn bộ học để xem bình luận',
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+      bottomNavigationBar: NavigationBar(
+        elevation: 0,
+        backgroundColor: AppColors.surface,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: AppColors.primaryLight,
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() => _selectedIndex = index);
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: AppStrings.navStudySets,
           ),
-        ),
+          NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: AppStrings.navProgress,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.add_circle_outline_rounded),
+            selectedIcon: Icon(Icons.add_circle_rounded),
+            label: AppStrings.navCreate,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: AppStrings.navProfile,
+          ),
+        ],
       ),
     );
   }

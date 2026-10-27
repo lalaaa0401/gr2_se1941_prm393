@@ -93,6 +93,41 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
+  /// POST /api/study-sets — tạo bộ học mới
+  Future<StudySet> createStudySet(
+    String title,
+    String? description,
+    String? subject,
+    bool isPublic,
+  ) async {
+    final response = await _dio.post('/api/study-sets', data: {
+      'title': title,
+      if (description != null) 'description': description,
+      if (subject != null) 'subject': subject,
+      'isPublic': isPublic,
+    });
+    if (response.data['success'] == true) {
+      return StudySet.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['message']);
+  }
+
+  /// POST /api/study-sets/{id}/flashcards — thêm flashcard vào bộ học
+  Future<void> addFlashcard(
+    int studySetId,
+    String term,
+    String definition,
+    int position,
+  ) async {
+    final response = await _dio.post(
+      '/api/study-sets/$studySetId/flashcards',
+      data: {'term': term, 'definition': definition, 'position': position},
+    );
+    if (response.data['success'] != true) {
+      throw Exception(response.data['message']);
+    }
+  }
+
   // ─── PROGRESS ────────────────────────────────────────────────────────────
 
   /// PUT /api/progress/{setId} — cập nhật trạng thái một flashcard
