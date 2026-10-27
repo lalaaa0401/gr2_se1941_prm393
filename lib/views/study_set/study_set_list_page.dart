@@ -275,7 +275,7 @@ class _StudySetListPageState extends State<StudySetListPage> {
         final s = vm.summary;
         final knownStr = s != null ? '${s.totalKnownCards}' : '-';
         final avgStr = s != null
-            ? '${(s.avgScorePercentage * 100).round()}%'
+            ? '${s.avgScorePercentage.round()}%'
             : '-';
         final streakStr = s != null ? '${s.currentStreak}🔥' : '-';
 
