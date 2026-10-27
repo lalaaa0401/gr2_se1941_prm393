@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'study_set/study_set_list_page.dart';
 import 'progress/progress_page.dart';
 import 'create/create_study_set_page.dart';
 import 'profile/profile_page.dart';
 import '../core/app_colors.dart';
 import '../core/app_strings.dart';
+import '../core/home_tab_controller.dart';
 
 /// Màn hình chính với BottomNavigationBar 4 tabs
 class HomeScreen extends StatefulWidget {
@@ -19,11 +21,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Danh sách 4 page tương ứng với từng tab
   static const List<Widget> _pages = [
-    StudySetListPage(),
-    ProgressPage(),
-    CreateStudySetPage(),
-    ProfilePage(),
+    StudySetListPage(),    // index 0 — Học
+    ProgressPage(),        // index 1 — Tiến độ
+    CreateStudySetPage(),  // index 2 — Tạo
+    ProfilePage(),         // index 3 — Hồ sơ
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Đăng ký listener sau khi frame đầu tiên được render xong
+    // để tránh gọi setState trước khi widget mount.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<HomeTabController>().addListener(_onTabChange);
+    });
+  }
+
+  /// Được gọi khi HomeTabController thay đổi activeIndex.
+  void _onTabChange() {
+    if (!mounted) return;
+    setState(() {
+      _selectedIndex = context.read<HomeTabController>().activeIndex;
+    });
+  }
+
+  @override
+  void dispose() {
+    // HomeTabController còn sống ở MultiProvider — chỉ cần remove listener.
+    context.read<HomeTabController>().removeListener(_onTabChange);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           setState(() => _selectedIndex = index);
+          // Đồng bộ controller để các widget khác (e.g. AvatarSheet)
+          // biết tab hiện tại.
+          context.read<HomeTabController>().switchTo(index);
         },
         destinations: const [
           NavigationDestination(

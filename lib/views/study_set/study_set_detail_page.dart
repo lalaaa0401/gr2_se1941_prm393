@@ -7,6 +7,7 @@ import '../../core/app_text_styles.dart';
 import '../../models/flashcard.dart';
 import '../../models/study_set.dart';
 import '../../viewmodels/study_set_viewmodel.dart';
+import '../../viewmodels/study_viewmodel.dart';
 
 class StudySetDetailPage extends StatefulWidget {
   final int studySetId;
@@ -191,63 +192,133 @@ class _StudySetDetailView extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Bắt đầu học — primary background
-        ElevatedButton(
-          onPressed: () => context.go('/study/$studySetId/flashcard'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+    return Consumer<StudyViewModel>(
+      builder: (context, studyVm, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Bắt đầu học — primary background
+            ElevatedButton(
+              onPressed: () => context.go('/study/$studySetId/flashcard'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: const Text('Bắt đầu học'),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          child: const Text('Bắt đầu học'),
-        ),
-        const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-        // Làm quiz — primaryLight background
-        ElevatedButton(
-          onPressed: () => context.go('/study/$studySetId/quiz'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryLight,
-            foregroundColor: AppColors.primary,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+            // Làm quiz — primaryLight background
+            ElevatedButton(
+              onPressed: () => context.go('/study/$studySetId/quiz'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryLight,
+                foregroundColor: AppColors.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: const Text('Làm quiz'),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          child: const Text('Làm quiz'),
-        ),
-        const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-        // Bình luận — outlined
-        OutlinedButton(
-          onPressed: () => context.go('/study/$studySetId/chat'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.textPrimary,
-            side: const BorderSide(color: AppColors.border, width: 1.5),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+            // Ôn thẻ yếu — warning outlined, badge count khi đã tải
+            OutlinedButton(
+              onPressed: studyVm.isLoading
+                  ? null
+                  : () async {
+                      await studyVm.loadWeakCards(studySetId);
+                      if (!context.mounted) return;
+                      if (studyVm.weakCards.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('Bạn đã biết tất cả thẻ trong bộ học này!'),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+                      context.go(
+                          '/review/weak/$studySetId');
+                    },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.warning,
+                side: const BorderSide(color: AppColors.warning, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: studyVm.isLoading
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.warning,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Ôn thẻ yếu'),
+                        if (studyVm.weakCards.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${studyVm.weakCards.length}',
+                              style: AppTextStyles.mono
+                                  .copyWith(color: AppColors.warning),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: const Text('Bình luận'),
-        ),
-      ],
+            const SizedBox(height: 10),
+
+            // Bình luận — outlined
+            OutlinedButton(
+              onPressed: () => context.go('/study/$studySetId/chat'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textPrimary,
+                side: const BorderSide(color: AppColors.border, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: const Text('Bình luận'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

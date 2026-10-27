@@ -37,6 +37,7 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   List<_QuizQuestion> _questions = [];
+  List<Flashcard> _flashcards = []; // thẻ gốc để tra cứu khi ghi nhận sai
   int _currentIdx = 0;
   int? _selectedIdx;
   bool _answered = false;
@@ -47,6 +48,8 @@ class _QuizPageState extends State<QuizPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Xóa danh sách thẻ sai của phiên quiz trước
+      context.read<StudyViewModel>().clearWrongCards();
       final vm = context.read<StudySetViewModel>();
       if (!vm.isLoading) vm.loadStudySets();
     });
@@ -56,6 +59,7 @@ class _QuizPageState extends State<QuizPage> {
   void _initQuestions(List<Flashcard> flashcards) {
     if (_initialized || flashcards.isEmpty) return;
     _initialized = true;
+    _flashcards = flashcards; // lưu lại để tra cứu khi trả lời sai
     _questions = _generateQuestions(flashcards);
   }
 
@@ -87,7 +91,12 @@ class _QuizPageState extends State<QuizPage> {
     setState(() {
       _selectedIdx = idx;
       _answered = true;
-      if (idx == _questions[_currentIdx].correctIndex) _score++;
+      if (idx == _questions[_currentIdx].correctIndex) {
+        _score++;
+      } else if (_flashcards.isNotEmpty) {
+        // Ghi nhận thẻ sai để ôn lại sau
+        context.read<StudyViewModel>().addWrongCard(_flashcards[_currentIdx]);
+      }
     });
   }
 

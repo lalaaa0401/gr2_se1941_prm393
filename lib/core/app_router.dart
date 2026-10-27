@@ -11,6 +11,7 @@ import '../views/study/quiz_page.dart';
 import '../views/study/quiz_result_page.dart';
 import '../views/profile/profile_page.dart';
 import '../views/chat/chat_page.dart';
+import '../views/study/review_flashcard_page.dart';
 
 /// Tất cả route names
 class AppRoutes {
@@ -24,6 +25,8 @@ class AppRoutes {
   static const quizResult     = '/study/:id/quiz/result';
   static const studyChat      = '/study/:id/chat';
   static const profile        = '/profile';
+  static const reviewWrong    = '/review/wrong';
+  static const reviewWeak     = '/review/weak/:id';
 }
 
 /// go_router singleton với redirect tự động dựa trên AuthState.
@@ -96,6 +99,22 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.profile,
       builder: (context, state) => const ProfilePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.reviewWrong,
+      builder: (context, state) => const ReviewFlashcardPage(
+        source: ReviewSource.wrong,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.reviewWeak,
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return ReviewFlashcardPage(
+          source: ReviewSource.weak,
+          studySetId: id,
+        );
+      },
     ),
   ],
 );
