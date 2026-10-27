@@ -59,13 +59,15 @@ class AuthViewModel extends ChangeNotifier {
 
   /// Register với real API.
   Future<bool> register(
-      String email, String password, String fullName) async {
+      String email, String password, String fullName,
+      {String? phone, String? school}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _apiService.register(email, password, fullName);
+      await _apiService.register(email, password, fullName,
+          phone: phone, school: school);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -83,13 +85,15 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Cập nhật fullName qua PUT /auth/me
-  Future<bool> updateProfile(String fullName) async {
+  /// Update profile với các field mới
+  Future<bool> updateProfile(String fullName,
+      {String? phone, String? school, String? bio}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
     try {
-      final updated = await _apiService.updateMe(fullName);
+      final updated = await _apiService.updateMe(fullName,
+          phone: phone, school: school, bio: bio);
       _currentUser = updated;
       _isLoading = false;
       notifyListeners();

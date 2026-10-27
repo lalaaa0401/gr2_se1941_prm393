@@ -458,6 +458,26 @@ class _EditProfileSheet extends StatefulWidget {
 }
 
 class _EditProfileSheetState extends State<_EditProfileSheet> {
+  late final TextEditingController _phoneCtrl;
+  late final TextEditingController _schoolCtrl;
+  late final TextEditingController _bioCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AuthViewModel>().currentUser;
+    _phoneCtrl = TextEditingController(text: user?.phone ?? '');
+    _schoolCtrl = TextEditingController(text: user?.school ?? '');
+    _bioCtrl = TextEditingController(text: user?.bio ?? '');
+  }
+
+  @override
+  void dispose() {
+    _phoneCtrl.dispose();
+    _schoolCtrl.dispose();
+    _bioCtrl.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
@@ -531,36 +551,18 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                // Full name (editable)
-                const Text('HỌ VÀ TÊN', style: TextStyle(
-                  fontSize: 11, fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8, color: AppColors.textSecondary,
-                )),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: widget.controller,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.surfaceDim,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: AppColors.border, width: 1.5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: AppColors.border, width: 1.5),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                          color: AppColors.primary, width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 13),
-                  ),
-                ),
+                // Full name
+                _sheetField('HỌ VÀ TÊN', widget.controller),
+                const SizedBox(height: 12),
+                // Phone (optional)
+                _sheetField('SỐ ĐIỆN THOẠI (tuỳ chọn)', _phoneCtrl,
+                    keyboardType: TextInputType.phone),
+                const SizedBox(height: 12),
+                // School (optional)
+                _sheetField('TRƯỜNG / TỔ CHỨC (tuỳ chọn)', _schoolCtrl),
+                const SizedBox(height: 12),
+                // Bio (optional)
+                _sheetField('GIỚI THIỆU (tuỳ chọn)', _bioCtrl, maxLines: 3),
                 const SizedBox(height: 20),
                 // Save button
                 SizedBox(
@@ -571,7 +573,12 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                         : () async {
                             final name = widget.controller.text.trim();
                             if (name.isEmpty) return;
-                            final ok = await auth.updateProfile(name);
+                    final ok = await auth.updateProfile(
+                      name,
+                      phone: _phoneCtrl.text.trim().isNotEmpty ? _phoneCtrl.text.trim() : null,
+                      school: _schoolCtrl.text.trim().isNotEmpty ? _schoolCtrl.text.trim() : null,
+                      bio: _bioCtrl.text.trim().isNotEmpty ? _bioCtrl.text.trim() : null,
+                    );
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -612,4 +619,49 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
       },
     );
   }
+}
+
+// ── Reusable field inside sheet ────────────────────────────────────────────────
+
+Widget _sheetField(String label, TextEditingController ctrl,
+    {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w700,
+          letterSpacing: 0.8, color: AppColors.textSecondary,
+        ),
+      ),
+      const SizedBox(height: 6),
+      TextField(
+        controller: ctrl,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: AppColors.surfaceDim,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                const BorderSide(color: AppColors.border, width: 1.5),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                const BorderSide(color: AppColors.border, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                const BorderSide(color: AppColors.primary, width: 2),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        ),
+      ),
+    ],
+  );
 }
