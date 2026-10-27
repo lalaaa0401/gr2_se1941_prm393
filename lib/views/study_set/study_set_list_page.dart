@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_strings.dart';
-import '../../core/app_text_styles.dart';
+import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/progress_viewmodel.dart';
 import '../../viewmodels/study_set_viewmodel.dart';
 import '../../widgets/study_set_card.dart';
 
@@ -22,6 +23,8 @@ class _StudySetListPageState extends State<StudySetListPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<StudySetViewModel>().loadStudySets();
+      // Tải dữ liệu tiến độ cho stats row (safe: loadProgress tự kiểm tra trùng)
+      context.read<ProgressViewModel>().loadProgress();
     });
   }
 
@@ -39,22 +42,11 @@ class _StudySetListPageState extends State<StudySetListPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header vùng cream
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(AppStrings.homeTitle, style: AppTextStyles.h1),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Tìm và học các bộ flashcard',
-                    style: AppTextStyles.caption,
-                  ),
-                ],
-              ),
-            ),
-            // White bottom sheet chứa nội dung
+            // ── Greeting header trên nền cream ──
+            _buildGreetingHeader(),
+            // ── Stats row trên nền cream ──
+            _buildStatsRow(),
+            // ── White sheet chứa search + filter + list ──
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -132,6 +124,131 @@ class _StudySetListPageState extends State<StudySetListPage> {
     );
   }
 
+  /// Greeting row: LEFT = label UPPERCASE + tên đầy đủ, RIGHT = avatar vuông
+  Widget _buildGreetingHeader() {
+    return Consumer<AuthViewModel>(
+      builder: (context, authVm, _) {
+        final user = authVm.currentUser;
+        final fullName = user?.fullName ?? 'Bạn';
+        final initials = _getInitials(fullName);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Phần bên trái: lời chào + tên
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'XIN CHÀO 👋',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      fullName,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Phần bên phải: avatar initials
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Stats row: 3 mini-card — Thẻ đã biết | Điểm TB quiz | Bộ học
+  Widget _buildStatsRow() {
+    return Consumer<ProgressViewModel>(
+      builder: (context, progressVm, _) {
+        final summary = progressVm.summary;
+
+        // Hiển thị "-" khi chưa load xong (null-safe)
+        final knownStr =
+            summary != null ? '${summary.totalKnownCards}' : '-';
+        final avgStr = summary != null
+            ? '${(summary.avgScorePercentage * 100).round()}%'
+            : '-';
+        final setsStr =
+            summary != null ? '${summary.totalStudySets}' : '-';
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
+          child: Row(
+            children: [
+              // Card 1: Thẻ đã biết — nền primary
+              Expanded(
+                child: _MiniStatCard(
+                  value: knownStr,
+                  label: 'Thẻ đã biết',
+                  isPrimary: true,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Card 2: Điểm TB quiz — nền trắng
+              Expanded(
+                child: _MiniStatCard(
+                  value: avgStr,
+                  label: 'Điểm TB quiz',
+                  isPrimary: false,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Card 3: Bộ học — nền trắng
+              Expanded(
+                child: _MiniStatCard(
+                  value: setsStr,
+                  label: 'Bộ học',
+                  isPrimary: false,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Lấy initials từ fullName: "Trần Đức" → "TĐ", "Admin" → "A"
+  String _getInitials(String fullName) {
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
+
   Widget _buildBody(BuildContext context, StudySetViewModel vm) {
     if (vm.isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -185,6 +302,59 @@ class _StudySetListPageState extends State<StudySetListPage> {
           onTap: () => context.go('/study-set/${studySet.id}'),
         );
       },
+    );
+  }
+}
+
+/// Mini stat card dùng trong stats row
+class _MiniStatCard extends StatelessWidget {
+  final String value;
+  final String label;
+  final bool isPrimary;
+
+  const _MiniStatCard({
+    required this.value,
+    required this.label,
+    required this.isPrimary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 80,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isPrimary ? AppColors.primary : AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: isPrimary
+            ? null
+            : Border.all(color: AppColors.border, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: isPrimary ? Colors.white : AppColors.textPrimary,
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isPrimary
+                  ? Colors.white.withValues(alpha: 0.85)
+                  : AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
