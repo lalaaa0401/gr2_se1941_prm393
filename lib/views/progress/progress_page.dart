@@ -31,74 +31,76 @@ class _ProgressPageState extends State<ProgressPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // [A] Header
-            const Padding(
-              padding: EdgeInsets.fromLTRB(24, 24, 24, 8),
-              child: Text('Tiến độ học tập', style: AppTextStyles.h1),
-            ),
+        child: Consumer<ProgressViewModel>(
+          builder: (context, vm, _) {
+            final summary = vm.summary;
+            final known = summary?.totalKnownCards ?? 0;
+            final unknown = summary != null &&
+                    summary.totalStudySets > 0 &&
+                    summary.totalKnownCards > 0
+                ? (summary.totalKnownCards * 0.4).round()
+                : 0;
 
-            // [B] White sheet
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(32)),
-                ),
-                child: Consumer<ProgressViewModel>(
-                  builder: (context, vm, _) {
-                    if (vm.isLoading) {
-                      return const Center(
-                          child: CircularProgressIndicator());
-                    }
-
-                    final summary = vm.summary;
-                    if (summary == null) {
-                      return const Center(
-                          child: Text('Không có dữ liệu tiến độ.'));
-                    }
-
-                    final unknown =
-                        summary.totalStudySets > 0 &&
-                                summary.totalKnownCards > 0
-                            ? (summary.totalKnownCards * 0.4).round()
-                            : 0;
-                    final known = summary.totalKnownCards;
-
-                    return ListView(
-                      padding: const EdgeInsets.all(24),
-                      children: [
-                        // ── Stats cards ──────────────────────────────
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // [A] Cream header — title + stat cards trực tiếp trên cream
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Tiến độ học tập', style: AppTextStyles.h1),
+                      if (!vm.isLoading && summary != null) ...[
+                        const SizedBox(height: 16),
                         _StatsRow(summary: summary),
-                        const SizedBox(height: 20),
-
-                        // ── Bar chart — học theo ngày ─────────────────
-                        const Text('Thẻ học theo ngày',
-                            style: AppTextStyles.h2),
-                        const SizedBox(height: 12),
-                        _WeeklyBarChart(data: vm.weeklyStudy),
-                        const SizedBox(height: 24),
-
-                        // ── Pie chart — biết / chưa biết ──────────────
-                        if (known > 0 || unknown > 0) ...[
-                          const Text('Tỷ lệ biết / chưa biết',
-                              style: AppTextStyles.h2),
-                          const SizedBox(height: 12),
-                          _KnownPieChart(known: known, unknown: unknown),
-                          const SizedBox(height: 12),
-                          _PieLegend(known: known, unknown: unknown),
-                          const SizedBox(height: 16),
-                        ],
                       ],
-                    );
-                  },
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+
+                // [B] White sheet — chỉ chứa charts
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(32)),
+                    ),
+                    child: vm.isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : summary == null
+                            ? const Center(
+                                child: Text('Không có dữ liệu tiến độ.'))
+                            : ListView(
+                                padding: const EdgeInsets.all(24),
+                                children: [
+                                  // ── Bar chart — học theo ngày ─────────
+                                  const Text('Thẻ học theo ngày',
+                                      style: AppTextStyles.h2),
+                                  const SizedBox(height: 12),
+                                  _WeeklyBarChart(data: vm.weeklyStudy),
+                                  const SizedBox(height: 24),
+
+                                  // ── Pie chart — biết / chưa biết ──────
+                                  if (known > 0 || unknown > 0) ...[
+                                    const Text('Tỷ lệ biết / chưa biết',
+                                        style: AppTextStyles.h2),
+                                    const SizedBox(height: 12),
+                                    _KnownPieChart(
+                                        known: known, unknown: unknown),
+                                    const SizedBox(height: 12),
+                                    _PieLegend(
+                                        known: known, unknown: unknown),
+                                    const SizedBox(height: 16),
+                                  ],
+                                ],
+                              ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -143,7 +145,7 @@ class _StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
         decoration: BoxDecoration(
-          color: AppColors.surfaceDim,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
