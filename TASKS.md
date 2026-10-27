@@ -207,14 +207,14 @@ P1-01 (pubspec + flutter create)            ✅
 
 ## Checklist trước khi nộp
 
-- [ ] `flutter analyze` — 0 issues
-- [ ] `flutter test` — cả 2 test file PASS
-- [ ] Release APK build thành công
+- [x] `flutter analyze` — 0 issues *(verified 27/10/2026)*
+- [x] `flutter test` — cả 2 test file PASS (13/13 tests) *(verified 27/10/2026)*
+- [x] Release APK build thành công *(T5-P1-03, commit 793d89c)*
 - [ ] Chụp màn hình / quay video APK chạy trên emulator (Release Mode)
 - [ ] Postman collection export và đính kèm
 - [ ] Tất cả tính năng UC#1–UC#10 hoạt động với real API
-- [ ] Không có token/password bị log ra console
-- [ ] `.kiro/`, `build/`, `*.apk` không bị commit lên git
+- [x] Không có token/password bị log ra console *(verified — no print/debugPrint with secrets)*
+- [x] `.kiro/`, `build/`, `*.apk` không bị commit lên git *(verified via .gitignore)*
 
 ---
 
