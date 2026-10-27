@@ -491,7 +491,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
             padding: const EdgeInsets.all(24),
-            child: Column(
+            child: SingleChildScrollView(
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -613,7 +614,8 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
                   ),
                 ),
               ],
-            ),
+            ), // Column
+            ), // SingleChildScrollView
           ),
         );
       },
