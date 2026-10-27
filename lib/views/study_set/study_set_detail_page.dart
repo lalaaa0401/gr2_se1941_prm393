@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
+import '../../core/app_router.dart';
 import '../../core/app_text_styles.dart';
 import '../../models/flashcard.dart';
 import '../../models/study_set.dart';
@@ -52,7 +53,13 @@ class _StudySetDetailPageState extends State<StudySetDetailPage> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back_ios_new),
-                          onPressed: () => context.pop(),
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go(AppRoutes.home);
+                            }
+                          },
                           iconSize: 20,
                           color: AppColors.textPrimary,
                         ),
@@ -103,7 +110,13 @@ class _StudySetDetailView extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_new),
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go(AppRoutes.home);
+                      }
+                    },
                     iconSize: 20,
                     color: AppColors.textPrimary,
                   ),
