@@ -79,7 +79,14 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!mounted) return;
 
     if (success) {
-      context.go(AppRoutes.login);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đăng ký thành công! Chào mừng bạn đến QuizLab 🎉'),
+          backgroundColor: Color(0xFF2E7D32),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      context.go(AppRoutes.home);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

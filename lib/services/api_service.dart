@@ -25,8 +25,8 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
-  /// POST /auth/register (phone + school optional)
-  Future<void> register(String email, String password, String fullName,
+  /// POST /auth/register (phone + school optional) — trả về User với token
+  Future<User> register(String email, String password, String fullName,
       {String? phone, String? school}) async {
     final response = await _dio.post('/auth/register', data: {
       'email': email,
@@ -35,9 +35,10 @@ class ApiService {
       if (phone != null && phone.isNotEmpty) 'phone': phone,
       if (school != null && school.isNotEmpty) 'school': school,
     });
-    if (response.data['success'] != true) {
-      throw Exception(response.data['message']);
+    if (response.data['success'] == true) {
+      return User.fromJson(response.data['data']);
     }
+    throw Exception(response.data['message']);
   }
 
   /// GET /auth/me → User
