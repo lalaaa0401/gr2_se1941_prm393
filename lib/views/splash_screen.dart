@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../core/app_colors.dart';
 import '../core/app_router.dart';
+import '../core/app_strings.dart';
+import '../core/app_text_styles.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -38,19 +40,36 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: AppColors.background,
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
-              'QuizLab',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.4,
-                color: AppColors.textPrimary,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Logo container
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Center(
+                child: Text(
+                  'Q',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-            SizedBox(height: 16),
-            CircularProgressIndicator(color: AppColors.primary),
+            const SizedBox(height: 24),
+            const Text('QuizLab', style: AppTextStyles.display),
+            const SizedBox(height: 8),
+            const Text(AppStrings.splashTagline, style: AppTextStyles.caption),
+            const SizedBox(height: 48),
+            const CircularProgressIndicator(
+              color: AppColors.primary,
+              strokeWidth: 2.5,
+            ),
           ],
         ),
       ),
