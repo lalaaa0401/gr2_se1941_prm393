@@ -174,9 +174,16 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
-  // ─── QUIZ ────────────────────────────────────────────────────────────────
-
-  /// POST /api/quiz-results — lưu kết quả quiz
+  /// GET /api/quiz-results/mine → lịch sử quiz của user
+  Future<List<QuizHistoryItem>> getMyQuizResults() async {
+    final response = await _dio.get('/api/quiz-results/mine');
+    if (response.data['success'] == true) {
+      return (response.data['data'] as List)
+          .map((e) => QuizHistoryItem.fromJson(e))
+          .toList();
+    }
+    throw Exception(response.data['message']);
+  }
   Future<QuizResult> submitQuizResult(int studySetId, int score, int totalQuestions) async {
     final response = await _dio.post('/api/quiz-results',
         data: {
