@@ -35,66 +35,99 @@ class _StudySetListPageState extends State<StudySetListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Bộ học', style: AppTextStyles.h1),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        automaticallyImplyLeading: false,
-      ),
-      body: Consumer<StudySetViewModel>(
-        builder: (context, vm, _) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: vm.searchStudySets,
-                  decoration: InputDecoration(
-                    hintText: 'Tìm kiếm bộ học...',
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: AppColors.textSecondary,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      borderSide:
-                          const BorderSide(color: AppColors.border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      borderSide:
-                          const BorderSide(color: AppColors.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(4),
-                      borderSide: const BorderSide(
-                          color: AppColors.primary, width: 1.5),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    hintStyle: const TextStyle(
-                        color: AppColors.textDisabled, fontSize: 13),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header vùng cream
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(AppStrings.homeTitle, style: AppTextStyles.h1),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tìm và học các bộ flashcard',
+                    style: AppTextStyles.caption,
                   ),
+                ],
+              ),
+            ),
+            // White bottom sheet chứa nội dung
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: Consumer<StudySetViewModel>(
+                  builder: (context, vm, _) {
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                          child: Column(
+                            children: [
+                              // Search field
+                              TextField(
+                                controller: _searchController,
+                                onChanged: vm.searchStudySets,
+                                decoration: InputDecoration(
+                                  hintText: AppStrings.searchHint,
+                                  prefixIcon: const Icon(
+                                    Icons.search_rounded,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  filled: true,
+                                  fillColor: AppColors.surfaceDim,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 14,
+                                  ),
+                                  hintStyle: const TextStyle(
+                                    color: AppColors.textDisabled,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                          ),
+                        ),
+                        // Subject filter chips
+                        if (vm.subjects.isNotEmpty) ...[
+                          _SubjectFilterRow(
+                            subjects: vm.subjects,
+                            selectedSubject: vm.selectedSubject,
+                            onSelect: vm.filterBySubject,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        Expanded(child: _buildBody(context, vm)),
+                      ],
+                    );
+                  },
                 ),
               ),
-              if (vm.subjects.isNotEmpty) ...[
-                _SubjectFilterRow(
-                  subjects: vm.subjects,
-                  selectedSubject: vm.selectedSubject,
-                  onSelect: vm.filterBySubject,
-                ),
-                const SizedBox(height: 4),
-              ],
-              Expanded(child: _buildBody(context, vm)),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -122,7 +155,8 @@ class _StudySetListPageState extends State<StudySetListPage> {
                   foregroundColor: AppColors.textPrimary,
                   side: const BorderSide(color: AppColors.border),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4)),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   elevation: 0,
                 ),
                 child: const Text('Thử lại'),
@@ -141,8 +175,7 @@ class _StudySetListPageState extends State<StudySetListPage> {
       );
     }
     return ListView.separated(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       itemCount: vm.studySets.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
@@ -170,10 +203,10 @@ class _SubjectFilterRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 36,
+      height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         children: [
           _FilterChip(
             label: 'Tất cả',
@@ -210,24 +243,22 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color:
-              isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected ? AppColors.primary : AppColors.surfaceDim,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.border,
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: 1,
           ),
-          borderRadius: BorderRadius.circular(2),
         ),
         child: Text(
           label,
-          style: AppTextStyles.label.copyWith(
-            color: isSelected
-                ? Colors.white
-                : AppColors.textPrimary,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            letterSpacing: 0.5,
           ),
         ),
       ),

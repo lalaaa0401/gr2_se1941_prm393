@@ -3,6 +3,7 @@ import '../core/app_colors.dart';
 import '../core/app_text_styles.dart';
 import '../models/study_set.dart';
 
+/// Card hiển thị bộ học với màu nền theo môn học
 class StudySetCard extends StatelessWidget {
   final StudySet studySet;
   final VoidCallback? onTap;
@@ -19,49 +20,38 @@ class StudySetCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(4),
+          color: AppColors.getSubjectBgColor(studySet.subject),
+          borderRadius: BorderRadius.circular(20),
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(studySet.title, style: AppTextStyles.h2),
+            // Nhãn môn học (uppercase)
             if (studySet.subject != null) ...[
-              const SizedBox(height: 8),
-              _SubjectChip(label: studySet.subject!),
+              Text(
+                studySet.subject!.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5,
+                  color: AppColors.getSubjectTextColor(studySet.subject),
+                ),
+              ),
+              const SizedBox(height: 6),
             ],
-            const SizedBox(height: 8),
+            // Tiêu đề bộ học
+            Text(studySet.title, style: AppTextStyles.h3),
+            const SizedBox(height: 10),
+            // Số lượng thẻ
             Text(
               '${studySet.cardCount} thẻ',
               style: AppTextStyles.mono.copyWith(
-                color: AppColors.textSecondary,
+                color: AppColors.getSubjectTextColor(studySet.subject),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SubjectChip extends StatelessWidget {
-  final String label;
-
-  const _SubjectChip({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.label.copyWith(color: AppColors.primary),
       ),
     );
   }
