@@ -19,6 +19,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _schoolController = TextEditingController();
 
   // Trạng thái hiển thị mật khẩu
   bool _passwordVisible = false;
@@ -30,6 +32,8 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneController.dispose();
+    _schoolController.dispose();
     super.dispose();
   }
 
@@ -68,6 +72,8 @@ class _RegisterPageState extends State<RegisterPage> {
       _emailController.text.trim(),
       _passwordController.text,
       _fullNameController.text.trim(),
+      phone: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+      school: _schoolController.text.trim().isNotEmpty ? _schoolController.text.trim() : null,
     );
 
     if (!mounted) return;
@@ -246,6 +252,23 @@ class _RegisterPageState extends State<RegisterPage> {
                             },
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Số điện thoại (optional)
+                      TextField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: _inputDecoration(
+                            hintText: 'Số điện thoại (tuỳ chọn)'),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Trường / Tổ chức (optional)
+                      TextField(
+                        controller: _schoolController,
+                        decoration: _inputDecoration(
+                            hintText: 'Trường / Tổ chức (tuỳ chọn)'),
                       ),
                       const SizedBox(height: 24),
 

@@ -25,10 +25,16 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
-  /// POST /auth/register
-  Future<void> register(String email, String password, String fullName) async {
-    final response = await _dio.post('/auth/register',
-        data: {'email': email, 'password': password, 'fullName': fullName});
+  /// POST /auth/register (phone + school optional)
+  Future<void> register(String email, String password, String fullName,
+      {String? phone, String? school}) async {
+    final response = await _dio.post('/auth/register', data: {
+      'email': email,
+      'password': password,
+      'fullName': fullName,
+      if (phone != null && phone.isNotEmpty) 'phone': phone,
+      if (school != null && school.isNotEmpty) 'school': school,
+    });
     if (response.data['success'] != true) {
       throw Exception(response.data['message']);
     }
@@ -43,10 +49,16 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
-  /// PUT /auth/me — cập nhật profile
-  Future<User> updateMe(String fullName, {String? avatarUrl}) async {
-    final response = await _dio.put('/auth/me',
-        data: {'fullName': fullName, if (avatarUrl != null) 'avatarUrl': avatarUrl});
+  /// PUT /auth/me — cập nhật profile (fullName + phone + school + bio)
+  Future<User> updateMe(String fullName,
+      {String? avatarUrl, String? phone, String? school, String? bio}) async {
+    final response = await _dio.put('/auth/me', data: {
+      'fullName': fullName,
+      if (avatarUrl != null) 'avatarUrl': avatarUrl,
+      if (phone != null) 'phone': phone,
+      if (school != null) 'school': school,
+      if (bio != null) 'bio': bio,
+    });
     if (response.data['success'] == true) {
       return User.fromJson(response.data['data']);
     }
