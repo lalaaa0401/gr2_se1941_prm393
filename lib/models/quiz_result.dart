@@ -30,3 +30,37 @@ class QuizResult {
     'totalQuestions': totalQuestions,
   };
 }
+
+/// Quiz history item từ GET /api/quiz-results/mine
+class QuizHistoryItem {
+  final int id;
+  final String studySetTitle;
+  final String? studySetSubject;
+  final int score;
+  final int totalQuestions;
+  final double percentage;
+  final String takenAt;
+
+  QuizHistoryItem({
+    required this.id,
+    required this.studySetTitle,
+    this.studySetSubject,
+    required this.score,
+    required this.totalQuestions,
+    required this.percentage,
+    required this.takenAt,
+  });
+
+  factory QuizHistoryItem.fromJson(Map<String, dynamic> json) {
+    final set = json['studySet'] as Map<String, dynamic>? ?? {};
+    return QuizHistoryItem(
+      id: json['id'] ?? 0,
+      studySetTitle: set['title'] ?? '',
+      studySetSubject: set['subject'],
+      score: json['score'] ?? 0,
+      totalQuestions: json['totalQuestions'] ?? 0,
+      percentage: (json['percentage'] ?? 0).toDouble(),
+      takenAt: json['takenAt'] ?? '',
+    );
+  }
+}
