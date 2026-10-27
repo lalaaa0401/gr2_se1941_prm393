@@ -5,8 +5,7 @@ import '../core/app_text_styles.dart';
 import '../models/flashcard.dart';
 
 /// T2-P4-01 – Thẻ flashcard có hiệu ứng lật (flip animation).
-///
-/// Elevation 2 được phép duy nhất tại widget này (xem ui-conventions.md).
+/// v5: Container + purple BoxShadow, radius 28, height 280.
 class FlashcardCard extends StatefulWidget {
   final Flashcard flashcard;
 
@@ -73,21 +72,22 @@ class _FlashcardCardState extends State<FlashcardCard>
             transform: Matrix4.identity()
               ..setEntry(3, 2, 0.001) // perspective
               ..rotateY(isFront ? angle : angle + pi),
-            child: SizedBox(
+            child: Container(
               width: double.infinity,
-              height: 200,
-              child: Card(
-                elevation: 2,
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(color: AppColors.border),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: isFront ? _buildFront() : _buildBack(),
-                ),
+              height: 280,
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+              decoration: BoxDecoration(
+                color: isFront ? AppColors.surface : AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x266A5AE0),
+                    blurRadius: 40,
+                    offset: Offset(0, 12),
+                  ),
+                ],
               ),
+              child: isFront ? _buildFront() : _buildBack(),
             ),
           );
         },
@@ -97,23 +97,25 @@ class _FlashcardCardState extends State<FlashcardCard>
 
   Widget _buildFront() {
     return Container(
-      color: AppColors.surface,
-      padding: const EdgeInsets.all(16),
+      color: Colors.transparent,
       child: Stack(
         alignment: Alignment.center,
         children: [
           Center(
             child: Text(
               widget.flashcard.term,
-              style: AppTextStyles.h2,
+              style: AppTextStyles.h1,
               textAlign: TextAlign.center,
+              maxLines: 4,
+              overflow: TextOverflow.fade,
             ),
           ),
           Positioned(
             bottom: 0,
             child: Text(
-              'Nhấn để lật',
-              style: AppTextStyles.monoSmall,
+              'Nhấn để lật ↕',
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.textSecondary),
             ),
           ),
         ],
@@ -123,13 +125,14 @@ class _FlashcardCardState extends State<FlashcardCard>
 
   Widget _buildBack() {
     return Container(
-      color: AppColors.primaryLight,
-      padding: const EdgeInsets.all(16),
+      color: Colors.transparent,
       child: Center(
         child: Text(
           widget.flashcard.definition,
           style: AppTextStyles.body,
           textAlign: TextAlign.center,
+          maxLines: 6,
+          overflow: TextOverflow.fade,
         ),
       ),
     );

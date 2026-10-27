@@ -8,7 +8,7 @@ import '../../viewmodels/study_set_viewmodel.dart';
 import '../../viewmodels/study_viewmodel.dart';
 import '../../widgets/flashcard_card.dart';
 
-/// T2-P4-02 – Trang học flashcard theo kiểu lật thẻ.
+/// T2-P4-02 – Trang học flashcard theo kiểu lật thẻ (v5 layout).
 class FlashcardStudyPage extends StatefulWidget {
   final int studySetId;
 
@@ -62,7 +62,7 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(28),
         ),
         title: const Text('Đã học xong!', style: AppTextStyles.h2),
         content: RichText(
@@ -85,7 +85,7 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
               foregroundColor: AppColors.textPrimary,
               side: const BorderSide(color: AppColors.border, width: 1),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(14),
               ),
               elevation: 0,
             ),
@@ -99,14 +99,13 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(14),
               ),
               padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               textStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.01,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
               ),
             ),
             child: const Text('Làm quiz'),
@@ -130,15 +129,31 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
 
         if (studySet == null || studySet.flashcards.isEmpty) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('Học flashcard', style: AppTextStyles.h2),
-              backgroundColor: AppColors.surface,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              iconTheme: const IconThemeData(color: AppColors.textPrimary),
-            ),
-            body: const Center(
-              child: Text('Không có thẻ nào trong bộ học này.'),
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => context.pop(),
+                          color: AppColors.textSecondary,
+                          iconSize: 22,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Expanded(
+                    child: Center(
+                      child: Text('Không có thẻ nào trong bộ học này.'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -152,106 +167,140 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
 
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: Text(studySet.title, style: AppTextStyles.h2),
-            backgroundColor: AppColors.surface,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            iconTheme: const IconThemeData(color: AppColors.textPrimary),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Tiến độ
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Thẻ ${safeIndex + 1} / $total',
-                      style: AppTextStyles.mono,
-                    ),
-                    Text(
-                      '$_knownCount biết',
-                      style: AppTextStyles.mono
-                          .copyWith(color: AppColors.known),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: AppColors.surfaceDim,
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  minHeight: 4,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-                const SizedBox(height: 20),
-
-                // Thẻ flashcard
-                FlashcardCard(
-                  key: ValueKey(current.id),
-                  flashcard: current,
-                ),
-
-                const Spacer(),
-
-                // Nút hành động
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () =>
-                            _advance(context, false, flashcards),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.unknown,
-                          side: const BorderSide(
-                            color: AppColors.unknown,
-                            width: 1,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          elevation: 0,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 12),
-                          textStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.01,
-                          ),
-                        ),
-                        child: const Text('Chưa biết'),
+                // [A] Header row: close + progress bar + known count
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => context.pop(),
+                        color: AppColors.textSecondary,
+                        iconSize: 22,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            _advance(context, true, flashcards),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.known,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 12),
-                          textStyle: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.01,
-                          ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: AppColors.border,
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppColors.primary),
+                          minHeight: 5,
+                          borderRadius: BorderRadius.circular(3),
                         ),
-                        child: const Text('Biết'),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Text(
+                        '$_knownCount biết',
+                        style: AppTextStyles.mono
+                            .copyWith(color: AppColors.known),
+                      ),
+                    ],
+                  ),
                 ),
+
+                // [B] Spacing
                 const SizedBox(height: 12),
+
+                // [C] Card count row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Thẻ ${safeIndex + 1} / $total',
+                        style: AppTextStyles.mono
+                            .copyWith(color: AppColors.textSecondary),
+                      ),
+                      Flexible(
+                        child: Text(
+                          studySet.title,
+                          style: AppTextStyles.caption,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // [D] Spacing
+                const SizedBox(height: 24),
+
+                // [E] Flashcard
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: FlashcardCard(
+                      key: ValueKey(current.id),
+                      flashcard: current,
+                    ),
+                  ),
+                ),
+
+                // [F] Spacing
+                const SizedBox(height: 32),
+
+                // [G] Action buttons
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              _advance(context, false, flashcards),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.unknown,
+                            side: const BorderSide(
+                              color: AppColors.unknown,
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          child: const Text('Chưa biết'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              _advance(context, true, flashcards),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.known,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          child: const Text('Biết rồi'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
