@@ -10,6 +10,9 @@ class StudySet {
   final String? createdAt;
   final Map<String, dynamic>? owner;
   final List<Flashcard> flashcards;
+  // Progress fields — từ BE khi gọi GET /api/study-sets
+  final int knownCards;
+  final double completionRate;
 
   StudySet({
     required this.id,
@@ -21,6 +24,8 @@ class StudySet {
     this.createdAt,
     this.owner,
     this.flashcards = const [],
+    this.knownCards = 0,
+    this.completionRate = 0.0,
   });
 
   factory StudySet.fromJson(Map<String, dynamic> json) => StudySet(
@@ -35,6 +40,8 @@ class StudySet {
     flashcards: (json['flashcards'] as List? ?? [])
         .map((e) => Flashcard.fromJson(e))
         .toList(),
+    knownCards: json['knownCards'] ?? 0,
+    completionRate: (json['completionRate'] ?? 0.0).toDouble(),
   );
 
   Map<String, dynamic> toJson() => {

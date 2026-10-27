@@ -116,7 +116,19 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
-  /// GET /api/progress/sets → List<StudySetProgress>
+  /// GET /api/study-sets/continue → StudySet user nên học tiếp
+  /// Trả về null nếu chưa học set nào
+  Future<StudySet?> getStudySetToContinue() async {
+    try {
+      final response = await _dio.get('/api/study-sets/continue');
+      if (response.data['success'] == true && response.data['data'] != null) {
+        return StudySet.fromJson(response.data['data']);
+      }
+      return null;
+    } catch (_) {
+      return null; // Không crash nếu endpoint chưa có data
+    }
+  }
   Future<List<StudySetProgress>> getProgressSets() async {
     final response = await _dio.get('/api/progress/sets');
     if (response.data['success'] == true) {
