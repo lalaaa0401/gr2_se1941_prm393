@@ -57,41 +57,37 @@ class AppColors {
   static const Color chart4        = Color(0xFFE89D00);
   static const Color chart5        = Color(0xFFC9353F);
 
-  /// Trả về màu nền theo môn học
+  /// Trả về màu nền theo môn học — hỗ trợ nhiều subject name từ API
   static Color getSubjectBgColor(String? subject) {
-    switch (subject?.toLowerCase()) {
-      case 'english':
-        return subjectEnBg;
-      case 'se':
-      case 'software':
-        return subjectSeBg;
-      case 'mobile':
-      case 'flutter':
-        return subjectMoBg;
-      case 'math':
-      case 'toán':
-        return subjectMaBg;
-      default:
-        return primaryLight;
-    }
+    final s = subject?.toLowerCase().trim() ?? '';
+    if (s.contains('english') || s.contains('tiếng anh')) return subjectEnBg;
+    if (s.contains('math') || s.contains('toán') || s.contains('discrete')) return subjectMaBg;
+    if (s.contains('mobile') || s.contains('flutter') || s.contains('android') || s.contains('ios')) return subjectMoBg;
+    if (s.contains('devops') || s.contains('docker') || s.contains('kubernetes') || s.contains('ci/cd')) return subjectMoBg;
+    if (s.contains('os') || s.contains('operating') || s.contains('hệ điều hành')) return subjectSeBg;
+    if (s.contains('web') || s.contains('javascript') || s.contains('typescript') || s.contains('html') || s.contains('css')) return primaryLight;
+    if (s.contains('java') || s.contains('spring') || s.contains('backend') || s.contains('server')) return subjectSeBg;
+    if (s.contains('security') || s.contains('bảo mật') || s.contains('network') || s.contains('mạng')) return const Color(0xFFFFE8F0);
+    if (s.contains('architect') || s.contains('design') || s.contains('pattern') || s.contains('solid')) return subjectMaBg;
+    if (s.contains('database') || s.contains('sql') || s.contains('cơ sở dữ liệu')) return subjectSeBg;
+    if (s.contains('se') || s.contains('software')) return subjectSeBg;
+    return primaryLight; // fallback
   }
 
-  /// Trả về màu chữ theo môn học
+  /// Trả về màu chữ/accent theo môn học
   static Color getSubjectTextColor(String? subject) {
-    switch (subject?.toLowerCase()) {
-      case 'english':
-        return subjectEnText;
-      case 'se':
-      case 'software':
-        return subjectSeText;
-      case 'mobile':
-      case 'flutter':
-        return subjectMoText;
-      case 'math':
-      case 'toán':
-        return subjectMaText;
-      default:
-        return primary;
-    }
+    final s = subject?.toLowerCase().trim() ?? '';
+    if (s.contains('english') || s.contains('tiếng anh')) return subjectEnText;
+    if (s.contains('math') || s.contains('toán') || s.contains('discrete')) return subjectMaText;
+    if (s.contains('mobile') || s.contains('flutter') || s.contains('android') || s.contains('ios')) return subjectMoText;
+    if (s.contains('devops') || s.contains('docker') || s.contains('kubernetes') || s.contains('ci/cd')) return subjectMoText;
+    if (s.contains('os') || s.contains('operating') || s.contains('hệ điều hành')) return subjectSeText;
+    if (s.contains('web') || s.contains('javascript') || s.contains('typescript') || s.contains('html') || s.contains('css')) return primary;
+    if (s.contains('java') || s.contains('spring') || s.contains('backend') || s.contains('server')) return subjectSeText;
+    if (s.contains('security') || s.contains('bảo mật') || s.contains('network') || s.contains('mạng')) return const Color(0xFFC9353F);
+    if (s.contains('architect') || s.contains('design') || s.contains('pattern') || s.contains('solid')) return subjectMaText;
+    if (s.contains('database') || s.contains('sql') || s.contains('cơ sở dữ liệu')) return subjectSeText;
+    if (s.contains('se') || s.contains('software')) return subjectSeText;
+    return primary; // fallback
   }
 }

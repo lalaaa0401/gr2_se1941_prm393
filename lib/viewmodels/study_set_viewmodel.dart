@@ -55,7 +55,9 @@ class StudySetViewModel extends ChangeNotifier {
         _apiService.getStudySetToContinue(),
       ]);
       _studySets = results[0] as List<StudySet>;
-      _continueSet = results[1] as StudySet?;
+      final beContinue = results[1] as StudySet?;
+      // Fallback: nếu BE chưa có /continue, tự tìm set đang học dở
+      _continueSet = beContinue ?? _deriveContinueSet();
       _applyFilters();
     } on DioException catch (e) {
       _errorMessage = e.type == DioExceptionType.connectionError
@@ -89,6 +91,16 @@ class StudySetViewModel extends ChangeNotifier {
       return matchesSearch && matchesSubject;
     }).toList();
     notifyListeners();
+  }
+
+  /// Tìm set đang học dở có completionRate cao nhất (fallback khi BE chưa có /continue)
+  StudySet? _deriveContinueSet() {
+    final inProgress = _studySets
+        .where((s) => s.completionRate > 0.0 && s.completionRate < 1.0)
+        .toList();
+    if (inProgress.isEmpty) return null;
+    return inProgress.reduce(
+        (a, b) => a.completionRate > b.completionRate ? a : b);
   }
 }
 
