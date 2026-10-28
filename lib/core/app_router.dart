@@ -12,6 +12,7 @@ import '../views/study/quiz_result_page.dart';
 import '../views/profile/profile_page.dart';
 import '../views/chat/chat_page.dart';
 import '../views/study/review_flashcard_page.dart';
+import '../views/admin/admin_page.dart';
 
 /// Tất cả route names
 class AppRoutes {
@@ -27,6 +28,7 @@ class AppRoutes {
   static const profile        = '/profile';
   static const reviewWrong    = '/review/wrong';
   static const reviewWeak     = '/review/weak/:id';
+  static const admin          = '/admin';
 }
 
 /// go_router singleton với redirect tự động dựa trên AuthState.
@@ -115,6 +117,10 @@ final appRouter = GoRouter(
           studySetId: id,
         );
       },
+    ),
+    GoRoute(
+      path: AppRoutes.admin,
+      builder: (context, state) => const AdminPage(),
     ),
   ],
 );

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../core/api_client.dart';
+import '../models/admin.dart';
 import '../models/user.dart';
 import '../models/study_set.dart';
 import '../models/quiz_result.dart';
@@ -276,5 +277,59 @@ class ApiService {
       return Message.fromJson(response.data['data']);
     }
     throw Exception(response.data['message']);
+  }
+
+  // ─── ADMIN ───────────────────────────────────────────────────────────────
+
+  /// GET /api/admin/stats → AdminStats
+  Future<AdminStats> getAdminStats() async {
+    final response = await _dio.get('/api/admin/stats');
+    if (response.data['success'] == true) {
+      return AdminStats.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['message']);
+  }
+
+  /// GET /api/admin/users?page=&size=20 → `List<AdminUser>`
+  /// data có thể là Map với 'content' key hoặc plain List
+  Future<List<AdminUser>> getAdminUsers({int page = 0}) async {
+    final response = await _dio.get('/api/admin/users',
+        queryParameters: {'page': page, 'size': 20});
+    if (response.data['success'] == true) {
+      final raw = response.data['data'];
+      final list = raw is Map ? raw['content'] as List : raw as List;
+      return list.map((e) => AdminUser.fromJson(e)).toList();
+    }
+    throw Exception(response.data['message']);
+  }
+
+  /// PUT /api/admin/users/{userId}/toggle-block → message String
+  Future<String> toggleBlockUser(int userId) async {
+    final response =
+        await _dio.put('/api/admin/users/$userId/toggle-block');
+    if (response.data['success'] == true) {
+      return response.data['message'] as String;
+    }
+    throw Exception(response.data['message']);
+  }
+
+  /// GET /api/admin/study-sets?page=&size=20 → `List<StudySet>`
+  Future<List<StudySet>> getAdminStudySets({int page = 0}) async {
+    final response = await _dio.get('/api/admin/study-sets',
+        queryParameters: {'page': page, 'size': 20});
+    if (response.data['success'] == true) {
+      final raw = response.data['data'];
+      final list = raw is Map ? raw['content'] as List : raw as List;
+      return list.map((e) => StudySet.fromJson(e)).toList();
+    }
+    throw Exception(response.data['message']);
+  }
+
+  /// DELETE /api/admin/study-sets/{id}
+  Future<void> adminDeleteStudySet(int id) async {
+    final response = await _dio.delete('/api/admin/study-sets/$id');
+    if (response.data['success'] != true) {
+      throw Exception(response.data['message']);
+    }
   }
 }
