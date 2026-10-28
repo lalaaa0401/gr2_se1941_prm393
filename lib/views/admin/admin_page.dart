@@ -483,56 +483,72 @@ class _OverviewTab extends StatelessWidget {
 
   Widget _buildPieSection(List<StudySet> sets) {
     final grouped = _groupBySubject(sets);
-    final entries = grouped.entries.toList();
+    // Sort by count desc, keep top 6, group rest into "Khác"
+    final sorted = grouped.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.take(6).toList();
+    final otherCount =
+        sorted.skip(6).fold(0, (sum, e) => sum + e.value);
+    if (otherCount > 0) {
+      top.add(MapEntry('Khác', otherCount));
+    }
+    final total = top.fold(0, (s, e) => s + e.value);
 
     return Column(
-      children: [
-        SizedBox(
-          height: 200,
-          child: PieChart(
-            PieChartData(
-              sections: List.generate(entries.length, (i) {
-                final color = _kChartColors[i % _kChartColors.length];
-                return PieChartSectionData(
-                  value: entries[i].value.toDouble(),
-                  color: color,
-                  radius: 55,
-                  title: entries[i].key,
-                  titleStyle: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                );
-              }),
-              sectionsSpace: 2,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          children: List.generate(entries.length, (i) {
-            final color = _kChartColors[i % _kChartColors.length];
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
+      children: List.generate(top.length, (i) {
+        final color = _kChartColors[i % _kChartColors.length];
+        final ratio = total > 0 ? top[i].value / total : 0.0;
+        final pct = (ratio * 100).round();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration:
+                    BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 90,
+                child: Text(
+                  top[i].key,
+                  style: AppTextStyles.caption,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: ratio,
+                    minHeight: 6,
+                    backgroundColor: AppColors.border,
+                    valueColor: AlwaysStoppedAnimation(color),
                   ),
                 ),
-                const SizedBox(width: 6),
-                Text(entries[i].key, style: AppTextStyles.caption),
-              ],
-            );
-          }),
-        ),
-      ],
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 36,
+                child: Text(
+                  '$pct%',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
@@ -674,7 +690,9 @@ class _UsersTabState extends State<_UsersTab> {
                       const Divider(height: 1, color: AppColors.border),
                   itemBuilder: (context, i) {
                     final user = filtered[i];
-                    return Padding(
+                    return GestureDetector(
+                      onTap: () => _showUserDetail(context, user),
+                      child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Row(
                         children: [
@@ -808,7 +826,8 @@ class _UsersTabState extends State<_UsersTab> {
                             ),
                         ],
                       ),
-                    );
+                    ),         // close Padding
+                    );         // close GestureDetector
                   },
                 ),
               ),
@@ -817,9 +836,85 @@ class _UsersTabState extends State<_UsersTab> {
       },
     );
   }
+
+  void _showUserDetail(BuildContext context, AdminUser user) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: Container(
+              width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+            )),
+            Row(children: [
+              Container(
+                width: 52, height: 52,
+                decoration: BoxDecoration(
+                  color: user.isBlocked ? AppColors.error : AppColors.primary,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(user.initials, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(width: 14),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Flexible(child: Text(user.fullName, style: AppTextStyles.h2, overflow: TextOverflow.ellipsis)),
+                    if (user.role == 'ADMIN') ...[
+                      const SizedBox(width: 6),
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
+                        child: const Text('ADMIN', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.primary))),
+                    ],
+                    if (user.isBlocked) ...[
+                      const SizedBox(width: 6),
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: AppColors.unknownLight, borderRadius: BorderRadius.circular(6)),
+                        child: const Text('Đã khoá', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.error))),
+                    ],
+                  ]),
+                  const SizedBox(height: 2),
+                  Text(user.email, style: AppTextStyles.caption),
+                ],
+              )),
+            ]),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 12),
+            _detailRow(Icons.phone_outlined, 'Điện thoại', user.phone ?? '—'),
+            _detailRow(Icons.school_outlined, 'Trường / Tổ chức', user.school ?? '—'),
+            _detailRow(Icons.tag, 'ID', '#${user.id}'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 10),
+        Text('$label: ', style: AppTextStyles.caption),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary), overflow: TextOverflow.ellipsis)),
+      ]),
+    );
+  }
 }
 
-// ── Study Sets Tab ─────────────────────────────────────────────────────────────
+// ── Study Sets Tab ────────────────────────────────────────────────────────────
 
 class _StudySetsTab extends StatefulWidget {
   const _StudySetsTab();
