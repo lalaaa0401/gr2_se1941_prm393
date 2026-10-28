@@ -7,6 +7,8 @@ class User {
   final String? phone;
   final String? school;
   final String? bio;
+  final String? role;
+  final bool isBlocked;
 
   User({
     required this.id,
@@ -17,7 +19,12 @@ class User {
     this.phone,
     this.school,
     this.bio,
+    this.role,
+    this.isBlocked = false,
   });
+
+  /// true nếu user có role ADMIN
+  bool get isAdmin => role == 'ADMIN';
 
   factory User.fromJson(Map<String, dynamic> json) => User(
     id: json['userId'] ?? json['id'],
@@ -28,6 +35,8 @@ class User {
     phone: json['phone'],
     school: json['school'],
     bio: json['bio'],
+    role: json['role'],
+    isBlocked: json['isBlocked'] ?? false,
   );
 
   Map<String, dynamic> toJson() => {
