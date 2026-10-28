@@ -5,6 +5,7 @@ import '../../core/app_colors.dart';
 import '../../core/app_text_styles.dart';
 import '../../models/flashcard.dart';
 import '../../viewmodels/study_set_viewmodel.dart';
+import '../../viewmodels/study_viewmodel.dart';
 import '../../widgets/flashcard_card.dart';
 
 /// T2-P4-02 – Trang học flashcard theo kiểu lật thẻ.
@@ -32,10 +33,19 @@ class _FlashcardStudyPageState extends State<FlashcardStudyPage> {
 
   void _advance(BuildContext context, bool known, List<Flashcard> flashcards) {
     final total = flashcards.length;
+    final safeIdx = _currentIndex.clamp(0, total - 1);
+    final currentCard = flashcards[safeIdx];
     final newKnown = _knownCount + (known ? 1 : 0);
 
+    // Cập nhật API ngầm thông qua StudyViewModel
+    final studyVm = context.read<StudyViewModel>();
+    if (known) {
+      studyVm.markKnown(widget.studySetId, currentCard.id);
+    } else {
+      studyVm.markUnknown(widget.studySetId, currentCard.id);
+    }
+
     if (_currentIndex >= total - 1) {
-      // Cập nhật trạng thái trước khi hiện dialog
       setState(() => _knownCount = newKnown);
       _showSummaryDialog(context, newKnown, total);
     } else {
