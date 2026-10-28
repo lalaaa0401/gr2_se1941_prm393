@@ -236,6 +236,36 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 20),
                           ],
 
+                          // Admin panel button — chỉ hiển thị cho ADMIN
+                          if (auth.currentUser?.isAdmin == true) ...[
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                icon: const Icon(
+                                    Icons.admin_panel_settings_outlined,
+                                    size: 18),
+                                label: const Text(
+                                  'Bảng quản trị',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                                onPressed: () => context.go('/admin'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryLight,
+                                  foregroundColor: AppColors.primary,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(14)),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 16),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+
                           // Logout
                           SizedBox(
                             width: double.infinity,
