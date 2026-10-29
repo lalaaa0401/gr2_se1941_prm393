@@ -738,92 +738,98 @@ class _UsersTabState extends State<_UsersTab> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Trailing — ADMIN badge, block button, or unblock
-                          if (user.role == 'ADMIN')
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryLight,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'ADMIN',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                  letterSpacing: 1.0,
-                                ),
-                              ),
-                            )
-                          else if (user.isBlocked)
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.unknownLight,
-                                    borderRadius: BorderRadius.circular(8),
+                          // Trailing — PopupMenuButton hiển thị role + actions
+                          PopupMenuButton<String>(
+                            onSelected: (value) async {
+                              if (value == 'make_admin' || value == 'make_user') {
+                                final newRole = value == 'make_admin' ? 'ADMIN' : 'USER';
+                                final label = value == 'make_admin' ? 'Cấp quyền ADMIN' : 'Thu hồi quyền ADMIN';
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: Text(label),
+                                    content: Text('$label cho ${user.fullName}?'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Huỷ')),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(context, true),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: value == 'make_admin' ? AppColors.primary : AppColors.error,
+                                          foregroundColor: Colors.white, elevation: 0,
+                                        ),
+                                        child: const Text('Xác nhận'),
+                                      ),
+                                    ],
                                   ),
-                                  child: const Text(
-                                    'Đã khoá',
+                                );
+                                if (confirmed == true && context.mounted) {
+                                  final msg = await vm.changeRole(user.id, newRole);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                      content: Text(msg ?? vm.errorMessage ?? 'Lỗi'),
+                                      backgroundColor: msg != null ? AppColors.success : AppColors.error,
+                                    ));
+                                  }
+                                }
+                              } else if (value == 'toggle_block') {
+                                _confirmToggleBlock(context, user, vm);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              if (user.role != 'ADMIN')
+                                const PopupMenuItem(value: 'make_admin', child: Row(children: [
+                                  Icon(Icons.shield_outlined, size: 16, color: AppColors.primary),
+                                  SizedBox(width: 8),
+                                  Text('Cấp quyền Admin'),
+                                ])),
+                              if (user.role == 'ADMIN')
+                                const PopupMenuItem(value: 'make_user', child: Row(children: [
+                                  Icon(Icons.person_outline, size: 16, color: AppColors.error),
+                                  SizedBox(width: 8),
+                                  Text('Thu hồi quyền Admin'),
+                                ])),
+                              if (user.role != 'ADMIN') ...[
+                                const PopupMenuDivider(),
+                                PopupMenuItem(value: 'toggle_block', child: Row(children: [
+                                  Icon(user.isBlocked ? Icons.lock_open_outlined : Icons.block_outlined,
+                                    size: 16, color: user.isBlocked ? AppColors.known : AppColors.error),
+                                  const SizedBox(width: 8),
+                                  Text(user.isBlocked ? 'Mở khoá tài khoản' : 'Khoá tài khoản'),
+                                ])),
+                              ],
+                            ],
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: user.role == 'ADMIN'
+                                    ? AppColors.primaryLight
+                                    : user.isBlocked
+                                        ? AppColors.unknownLight
+                                        : AppColors.surfaceDim,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    user.role == 'ADMIN' ? 'ADMIN' : user.isBlocked ? 'Khoá' : 'USER',
                                     style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.error,
+                                      fontSize: 11, fontWeight: FontWeight.w700,
+                                      color: user.role == 'ADMIN'
+                                          ? AppColors.primary
+                                          : user.isBlocked
+                                              ? AppColors.error
+                                              : AppColors.textSecondary,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                ElevatedButton(
-                                  onPressed: () => _confirmToggleBlock(
-                                      context, user, vm),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.knownLight,
-                                    foregroundColor: AppColors.known,
-                                    elevation: 0,
-                                    minimumSize: Size.zero,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                  ),
-                                  child: const Text(
-                                    'Mở khoá',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700),
-                                  ),
-                                ),
-                              ],
-                            )
-                          else
-                            ElevatedButton(
-                              onPressed: () =>
-                                  _confirmToggleBlock(context, user, vm),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.unknownLight,
-                                foregroundColor: AppColors.error,
-                                elevation: 0,
-                                minimumSize: Size.zero,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(10)),
-                              ),
-                              child: const Text(
-                                'Khoá',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700),
+                                  const SizedBox(width: 2),
+                                  Icon(Icons.arrow_drop_down, size: 16,
+                                    color: user.role == 'ADMIN' ? AppColors.primary : AppColors.textSecondary),
+                                ],
                               ),
                             ),
+                          ),
                         ],
                       ),
                     ),         // close Padding
