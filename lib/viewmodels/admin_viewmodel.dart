@@ -88,4 +88,28 @@ class AdminViewModel extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// Đổi role USER ↔ ADMIN và cập nhật local state
+  Future<String?> changeRole(int userId, String newRole) async {
+    try {
+      final msg = await _api.changeUserRole(userId, newRole);
+      final idx = _users.indexWhere((u) => u.id == userId);
+      if (idx != -1) {
+        final updated = List<AdminUser>.from(_users);
+        updated[idx] = updated[idx].copyWith(role: newRole);
+        _users = updated;
+        notifyListeners();
+      }
+      return msg;
+    } on DioException catch (e) {
+      _errorMessage = e.response?.data?['message']?.toString() ??
+          'Lỗi kết nối. Vui lòng thử lại.';
+      notifyListeners();
+      return null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
 }

@@ -895,6 +895,105 @@ class _UsersTabState extends State<_UsersTab> {
             _detailRow(Icons.phone_outlined, 'Điện thoại', user.phone ?? '—'),
             _detailRow(Icons.school_outlined, 'Trường / Tổ chức', user.school ?? '—'),
             _detailRow(Icons.tag, 'ID', '#${user.id}'),
+            const SizedBox(height: 16),
+
+            // ── Phân quyền ──────────────────────────────────────────
+            const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 14),
+            const Text('PHÂN QUYỀN', style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700,
+              letterSpacing: 0.8, color: AppColors.textSecondary,
+            )),
+            const SizedBox(height: 10),
+            Row(children: [
+              // Nút cấp quyền ADMIN
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: user.role == 'ADMIN'
+                      ? null // Đã là ADMIN — disable
+                      : () async {
+                          Navigator.pop(context);
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Cấp quyền Admin'),
+                              content: Text('Cấp quyền ADMIN cho ${user.fullName}?\nHọ sẽ có toàn quyền quản trị hệ thống.'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Huỷ')),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0),
+                                  child: const Text('Xác nhận'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true && context.mounted) {
+                            final msg = await context.read<AdminViewModel>().changeRole(user.id, 'ADMIN');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(msg ?? context.read<AdminViewModel>().errorMessage ?? 'Lỗi'),
+                                backgroundColor: msg != null ? AppColors.success : AppColors.error,
+                              ));
+                            }
+                          }
+                        },
+                  icon: const Icon(Icons.shield_outlined, size: 16),
+                  label: const Text('Cấp Admin', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: user.role == 'ADMIN' ? AppColors.border : AppColors.primaryLight,
+                    foregroundColor: user.role == 'ADMIN' ? AppColors.textDisabled : AppColors.primary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Nút thu hồi quyền ADMIN → về USER
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: user.role != 'ADMIN'
+                      ? null // Không phải ADMIN — disable
+                      : () async {
+                          Navigator.pop(context);
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Thu hồi quyền Admin'),
+                              content: Text('Thu hồi quyền ADMIN của ${user.fullName}?\nHọ sẽ trở thành USER thường.'),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Huỷ')),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white, elevation: 0),
+                                  child: const Text('Thu hồi'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true && context.mounted) {
+                            final msg = await context.read<AdminViewModel>().changeRole(user.id, 'USER');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(msg ?? context.read<AdminViewModel>().errorMessage ?? 'Lỗi'),
+                                backgroundColor: msg != null ? AppColors.success : AppColors.error,
+                              ));
+                            }
+                          }
+                        },
+                  icon: const Icon(Icons.remove_moderator_outlined, size: 16),
+                  label: const Text('Thu hồi', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: user.role != 'ADMIN' ? AppColors.border : AppColors.unknownLight,
+                    foregroundColor: user.role != 'ADMIN' ? AppColors.textDisabled : AppColors.error,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ]),
           ],
         ),
       ),
