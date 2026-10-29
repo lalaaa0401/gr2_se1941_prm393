@@ -1,10 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/app_strings.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  // ignore: unused_field
   final ApiService _apiService;
 
   User? _currentUser;
@@ -23,36 +24,38 @@ class AuthViewModel extends ChangeNotifier {
 
   // ─── Auth actions ──────────────────────────────────────────────────────────
 
-  /// Mock login: accepts any email/password, 800 ms delay.
+  /// Login với real API. Lưu JWT vào SharedPreferences khi thành công.
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      _currentUser = User(
-        id: 1,
-        email: email,
-        fullName: email.split('@').first,
-        token: 'mock_access_token',
-      );
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('access_token', _currentUser!.token!);
+      final user = await _apiService.login(email, password);
+      _currentUser = user;
+      if (user.token != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('access_token', user.token!);
+      }
       _isLoggedIn = true;
       _isLoading = false;
       notifyListeners();
       return true;
+    } on DioException catch (e) {
+      _errorMessage =
+          e.response?.data?['message']?.toString() ?? AppStrings.errorNetwork;
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _extractMessage(e);
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  /// Mock register: accepts any input, 800 ms delay.
+  /// Register với real API.
   Future<bool> register(
       String email, String password, String fullName) async {
     _isLoading = true;
@@ -60,19 +63,25 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(milliseconds: 800));
+      await _apiService.register(email, password, fullName);
       _isLoading = false;
       notifyListeners();
       return true;
+    } on DioException catch (e) {
+      _errorMessage =
+          e.response?.data?['message']?.toString() ?? AppStrings.errorNetwork;
+      _isLoading = false;
+      notifyListeners();
+      return false;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _extractMessage(e);
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  /// Clear session and remove token from SharedPreferences.
+  /// Clear session và xóa token khỏi SharedPreferences.
   Future<void> logout() async {
     _currentUser = null;
     _isLoggedIn = false;
@@ -81,13 +90,28 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Read 'access_token' from SharedPreferences; set _isLoggedIn if present.
+  /// Đọc token từ SharedPreferences; nếu tồn tại, gọi getMe() để restore user.
   Future<void> checkSession() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
-    if (token != null) {
+    if (token == null) {
+      notifyListeners();
+      return;
+    }
+    try {
+      _currentUser = await _apiService.getMe();
       _isLoggedIn = true;
+    } catch (_) {
+      // Token hết hạn hoặc không hợp lệ
+      await prefs.remove('access_token');
+      _isLoggedIn = false;
     }
     notifyListeners();
+  }
+
+  String _extractMessage(Object e) {
+    final msg = e.toString();
+    if (msg.startsWith('Exception: ')) return msg.substring(11);
+    return AppStrings.errorUnknown;
   }
 }
