@@ -58,11 +58,11 @@ class AdminUser {
     school: json['school'],
   );
 
-  AdminUser copyWith({bool? isBlocked}) => AdminUser(
+  AdminUser copyWith({bool? isBlocked, String? role}) => AdminUser(
     id: id,
     email: email,
     fullName: fullName,
-    role: role,
+    role: role ?? this.role,
     isBlocked: isBlocked ?? this.isBlocked,
     phone: phone,
     school: school,

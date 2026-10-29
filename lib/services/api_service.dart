@@ -9,7 +9,7 @@ import '../models/message.dart';
 import '../models/study_progress.dart';
 
 /// Tất cả HTTP calls đến QuizLab REST API
-/// Base URL: http://10.0.2.2:8080
+/// Base URL: http://localhost:8080
 /// Response format: { "success": bool, "message": String, "data": T }
 class ApiService {
   Dio get _dio => ApiClient.instance;
@@ -331,5 +331,17 @@ class ApiService {
     if (response.data['success'] != true) {
       throw Exception(response.data['message']);
     }
+  }
+
+  /// PUT /api/admin/users/{id}/role — đổi role USER ↔ ADMIN
+  Future<String> changeUserRole(int userId, String newRole) async {
+    final response = await _dio.put(
+      '/api/admin/users/$userId/role',
+      data: {'role': newRole},
+    );
+    if (response.data['success'] == true) {
+      return response.data['message'] as String;
+    }
+    throw Exception(response.data['message']);
   }
 }
