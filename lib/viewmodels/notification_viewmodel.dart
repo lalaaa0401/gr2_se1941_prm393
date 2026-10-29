@@ -2,8 +2,12 @@ import 'package:flutter/foundation.dart';
 import '../models/notification.dart';
 import '../services/api_service.dart';
 
+/// T4-P5-02 – NotificationViewModel dùng real API.
+///
+/// - loadNotifications(): GET /api/notifications
+/// - markAsRead(id): optimistic update + PUT /api/notifications/{id}/read (silent)
+/// - markAllAsRead(): optimistic update + PUT /api/notifications/read-all (silent)
 class NotificationViewModel extends ChangeNotifier {
-  // ignore: unused_field
   final ApiService _apiService;
 
   List<AppNotification> _notifications = [];
@@ -19,56 +23,39 @@ class NotificationViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    _notifications = [
-      AppNotification(
-        id: 1,
-        title: 'Chào mừng đến QuizZone!',
-        body: 'Bắt đầu tạo bộ học đầu tiên của bạn',
-        type: 'INFO',
-        isRead: false,
-        createdAt: '2026-10-26T09:00:00',
-      ),
-      AppNotification(
-        id: 2,
-        title: 'Quiz hoàn thành',
-        body: 'Bạn đạt 8/10 câu đúng trong bộ English Vocabulary',
-        type: 'ACHIEVEMENT',
-        isRead: false,
-        createdAt: '2026-10-25T14:30:00',
-      ),
-      AppNotification(
-        id: 3,
-        title: 'Nhắc nhở học tập',
-        body: 'Hôm nay bạn chưa học thẻ nào',
-        type: 'REMINDER',
-        isRead: true,
-        createdAt: '2026-10-24T08:00:00',
-      ),
-    ];
+    try {
+      _notifications = await _apiService.getNotifications();
+    } catch (_) {
+      _notifications = [];
+    }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  void markAsRead(int id) {
+  /// Optimistic markAsRead — cập nhật UI ngay, gọi API ngầm.
+  Future<void> markAsRead(int id) async {
     final index = _notifications.indexWhere((n) => n.id == id);
-    if (index != -1 && !_notifications[index].isRead) {
-      final n = _notifications[index];
-      _notifications[index] = AppNotification(
-        id: n.id,
-        title: n.title,
-        body: n.body,
-        type: n.type,
-        isRead: true,
-        createdAt: n.createdAt,
-      );
-      notifyListeners();
-    }
+    if (index == -1 || _notifications[index].isRead) return;
+
+    final n = _notifications[index];
+    _notifications[index] = AppNotification(
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      type: n.type,
+      isRead: true,
+      createdAt: n.createdAt,
+    );
+    notifyListeners();
+
+    try {
+      await _apiService.markNotificationRead(id);
+    } catch (_) {}
   }
 
-  void markAllAsRead() {
+  /// Optimistic markAllAsRead — cập nhật UI ngay, gọi API ngầm.
+  Future<void> markAllAsRead() async {
     _notifications = _notifications
         .map(
           (n) => AppNotification(
@@ -82,5 +69,9 @@ class NotificationViewModel extends ChangeNotifier {
         )
         .toList();
     notifyListeners();
+
+    try {
+      await _apiService.markAllNotificationsRead();
+    } catch (_) {}
   }
 }
