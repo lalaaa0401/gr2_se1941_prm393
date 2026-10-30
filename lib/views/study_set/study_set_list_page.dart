@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
+import '../../core/app_strings.dart';
 import '../../core/app_text_styles.dart';
 import '../../viewmodels/study_set_viewmodel.dart';
 import '../../widgets/study_set_card.dart';
@@ -102,10 +103,39 @@ class _StudySetListPageState extends State<StudySetListPage> {
     if (vm.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+    if (vm.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                vm.errorMessage!,
+                style: const TextStyle(color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: () => vm.loadStudySets(forceRefresh: true),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textPrimary,
+                  side: const BorderSide(color: AppColors.border),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                  elevation: 0,
+                ),
+                child: const Text('Thử lại'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     if (vm.studySets.isEmpty) {
       return const Center(
         child: Text(
-          'Không tìm thấy bộ học nào',
+          AppStrings.emptyStudySets,
           style: TextStyle(color: AppColors.textSecondary),
         ),
       );
