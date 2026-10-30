@@ -174,6 +174,19 @@ class _StudySetDetailView extends StatelessWidget {
           ),
           child: const Text('Làm quiz'),
         ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: () => context.go('/study/$studySetId/chat'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.textPrimary,
+            side: const BorderSide(color: AppColors.border, width: 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            elevation: 0,
+          ),
+          child: const Text('Bình luận'),
+        ),
       ],
     );
   }
