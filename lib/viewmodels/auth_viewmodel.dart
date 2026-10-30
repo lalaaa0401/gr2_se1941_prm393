@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_strings.dart';
+import '../core/auth_state.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
 
@@ -39,6 +40,7 @@ class AuthViewModel extends ChangeNotifier {
       }
       _isLoggedIn = true;
       _isLoading = false;
+      AuthState.instance.update(true);
       notifyListeners();
       return true;
     } on DioException catch (e) {
@@ -87,6 +89,7 @@ class AuthViewModel extends ChangeNotifier {
     _isLoggedIn = false;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
+    AuthState.instance.update(false);
     notifyListeners();
   }
 
@@ -106,6 +109,7 @@ class AuthViewModel extends ChangeNotifier {
       await prefs.remove('access_token');
       _isLoggedIn = false;
     }
+    AuthState.instance.update(_isLoggedIn);
     notifyListeners();
   }
 

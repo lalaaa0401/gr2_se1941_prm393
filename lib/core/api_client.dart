@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'auth_state.dart';
+import 'error_bus.dart';
 
-/// Dio singleton với JWT interceptor tự động gắn Authorization header
+/// Dio singleton với JWT interceptor tự động gắn Authorization header,
+/// 401 auto-logout, và phát lỗi qua ErrorBus.
 class ApiClient {
   ApiClient._();
 
@@ -32,14 +35,28 @@ class ApiClient {
         },
         onError: (error, handler) async {
           if (error.response?.statusCode == 401) {
-            // Token hết hạn → xóa token (AuthViewModel sẽ điều hướng về Login)
+            // Token hết hạn → xóa token + thông báo AuthState để router redirect
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('access_token');
+            AuthState.instance.update(false);
+          } else {
+            // Phát lỗi ra ErrorBus để QuizZoneApp hiển thị SnackBar
+            ErrorBus.instance.emit(_buildMessage(error));
           }
           return handler.next(error);
         },
       ),
     );
     return _dio;
+  }
+
+  static String _buildMessage(DioException error) {
+    if (error.type == DioExceptionType.connectionError ||
+        error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout) {
+      return 'Lỗi kết nối. Vui lòng thử lại.';
+    }
+    return error.response?.data?['message']?.toString() ??
+        'Đã có lỗi xảy ra.';
   }
 }
