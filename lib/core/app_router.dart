@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'auth_state.dart';
 import '../views/home_screen.dart';
 import '../views/splash_screen.dart';
 import '../views/auth/login_page.dart';
@@ -25,9 +26,21 @@ class AppRoutes {
   static const profile        = '/profile';
 }
 
-/// go_router singleton
+/// go_router singleton với redirect tự động dựa trên AuthState.
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
+  refreshListenable: AuthState.instance,
+  redirect: (context, state) {
+    final isLoggedIn = AuthState.instance.isLoggedIn;
+    final loc = state.matchedLocation;
+    final isAuthRoute = loc == AppRoutes.login ||
+        loc == AppRoutes.register ||
+        loc == AppRoutes.splash;
+
+    // Chưa đăng nhập và đang truy cập route cần auth → về Login
+    if (!isLoggedIn && !isAuthRoute) return AppRoutes.login;
+    return null;
+  },
   routes: [
     GoRoute(
       path: AppRoutes.splash,
