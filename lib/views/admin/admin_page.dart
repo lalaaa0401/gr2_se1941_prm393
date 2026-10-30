@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +9,6 @@ import '../../viewmodels/admin_viewmodel.dart';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const _kDays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-const _kMockActivity = [12, 8, 15, 6, 20, 18, 5];
 const List<Color> _kChartColors = [
   AppColors.chart1,
   AppColors.chart2,
@@ -379,102 +376,97 @@ class _OverviewTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AdminViewModel>(
       builder: (context, vm, _) {
-        final maxVal = _kMockActivity
-            .fold(0, (prev, e) => e > prev ? e : prev)
-            .toDouble();
+        final users = vm.users;
+        final sets = vm.studySets;
+
+        // Tính metrics từ data đã load
+        final adminCount = users.where((u) => u.role == 'ADMIN').length;
+        final blockedCount = users.where((u) => u.isBlocked && u.role != 'ADMIN').length;
+        final activeCount = users.where((u) => !u.isBlocked && u.role != 'ADMIN').length;
+        final publicSets = sets.where((s) => s.isPublic).length;
+        final privateSets = sets.where((s) => !s.isPublic).length;
+        final avgCards = sets.isEmpty ? 0.0
+            : sets.map((s) => s.cardCount).fold(0, (a, b) => a + b) / sets.length;
 
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // Biểu đồ đăng ký tuần
-            const Text('Đăng ký trong tuần', style: AppTextStyles.h2),
+            // ── User breakdown ────────────────────────────────────────
+            const Text('Phân bổ người dùng', style: AppTextStyles.h2),
             const SizedBox(height: 12),
             Container(
-              height: 160,
-              padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.surfaceDim,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: BarChart(
-                BarChartData(
-                  maxY: maxVal * 1.25,
-                  backgroundColor: AppColors.surfaceDim,
-                  borderData: FlBorderData(show: false),
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    getDrawingHorizontalLine: (_) => const FlLine(
-                      color: AppColors.border,
-                      strokeWidth: 1,
-                    ),
-                  ),
-                  titlesData: FlTitlesData(
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 22,
-                        getTitlesWidget: (v, _) {
-                          final i = v.toInt();
-                          if (i < 0 || i >= _kDays.length) {
-                            return const SizedBox.shrink();
-                          }
-                          final isToday = i == _kDays.length - 1;
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              _kDays[i],
-                              style: TextStyle(
-                                fontSize: 9,
-                                fontWeight: isToday
-                                    ? FontWeight.w800
-                                    : FontWeight.w600,
-                                color: isToday
-                                    ? AppColors.warning
-                                    : AppColors.textSecondary,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  barGroups: List.generate(_kMockActivity.length, (i) {
-                    final isToday = i == _kMockActivity.length - 1;
-                    return BarChartGroupData(
-                      x: i,
-                      barRods: [
-                        BarChartRodData(
-                          toY: _kMockActivity[i].toDouble(),
-                          color: isToday
-                              ? AppColors.warning
-                              : AppColors.primaryLight,
-                          width: 18,
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(4)),
-                        ),
-                      ],
-                    );
-                  }),
-                ),
+              child: Column(
+                children: [
+                  _BreakdownRow(label: 'User thường', count: activeCount, total: users.isEmpty ? 1 : users.length, color: AppColors.primary),
+                  const SizedBox(height: 10),
+                  _BreakdownRow(label: 'Quản trị viên', count: adminCount, total: users.isEmpty ? 1 : users.length, color: AppColors.chart2),
+                  const SizedBox(height: 10),
+                  _BreakdownRow(label: 'Bị khoá', count: blockedCount, total: users.isEmpty ? 1 : users.length, color: AppColors.error),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Biểu đồ phân bổ chủ đề
+            // ── Set metrics ───────────────────────────────────────────
+            const Text('Thống kê bộ học', style: AppTextStyles.h2),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(child: _MetricCard(
+                icon: Icons.public_outlined,
+                value: '$publicSets',
+                label: 'Công khai',
+                color: AppColors.known,
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: _MetricCard(
+                icon: Icons.lock_outline,
+                value: '$privateSets',
+                label: 'Riêng tư',
+                color: AppColors.textSecondary,
+              )),
+              const SizedBox(width: 10),
+              Expanded(child: _MetricCard(
+                icon: Icons.style_outlined,
+                value: avgCards.toStringAsFixed(1),
+                label: 'TB thẻ/bộ',
+                color: AppColors.warning,
+              )),
+            ]),
+            const SizedBox(height: 20),
+
+            // ── Set visibility bar ────────────────────────────────────
+            if (sets.isNotEmpty) ...[
+              Row(children: [
+                Expanded(child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: sets.isEmpty ? 0 : publicSets / sets.length,
+                    minHeight: 8,
+                    backgroundColor: AppColors.border,
+                    valueColor: const AlwaysStoppedAnimation(AppColors.known),
+                  ),
+                )),
+                const SizedBox(width: 10),
+                Text(
+                  '${(sets.isEmpty ? 0 : publicSets * 100 ~/ sets.length)}% công khai',
+                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontFamily: 'monospace'),
+                ),
+              ]),
+              const SizedBox(height: 20),
+            ],
+
+            // ── Phân bổ chủ đề ────────────────────────────────────────
             const Text('Phân bổ chủ đề', style: AppTextStyles.h2),
             const SizedBox(height: 12),
-            if (vm.studySets.isEmpty)
+            if (sets.isEmpty)
               const Text('Chưa có dữ liệu', style: AppTextStyles.caption)
             else
-              _buildPieSection(vm.studySets),
+              _buildPieSection(sets),
           ],
         );
       },
@@ -549,6 +541,66 @@ class _OverviewTab extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+}
+
+// ── Breakdown row (user stats) ─────────────────────────────────────────────────
+
+class _BreakdownRow extends StatelessWidget {
+  final String label;
+  final int count;
+  final int total;
+  final Color color;
+  const _BreakdownRow({required this.label, required this.count, required this.total, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = total > 0 ? count / total : 0.0;
+    return Row(children: [
+      Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      const SizedBox(width: 8),
+      SizedBox(width: 110, child: Text(label, style: AppTextStyles.caption)),
+      const SizedBox(width: 8),
+      Expanded(child: ClipRRect(
+        borderRadius: BorderRadius.circular(3),
+        child: LinearProgressIndicator(
+          value: ratio, minHeight: 6,
+          backgroundColor: AppColors.border,
+          valueColor: AlwaysStoppedAnimation(color),
+        ),
+      )),
+      const SizedBox(width: 8),
+      SizedBox(width: 40, child: Text('$count', textAlign: TextAlign.right,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color, fontFamily: 'monospace'))),
+    ]);
+  }
+}
+
+// ── Metric card ────────────────────────────────────────────────────────────────
+
+class _MetricCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+  const _MetricCard({required this.icon, required this.value, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDim,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(height: 6),
+        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color, fontFamily: 'monospace')),
+        const SizedBox(height: 2),
+        Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
+      ]),
     );
   }
 }
