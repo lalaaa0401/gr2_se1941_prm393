@@ -2,7 +2,7 @@
 > Group 2 · SE1941 · PRM393  
 > 5 thành viên · 5 tuần
 
-**Tiến độ tổng quan:** 39 / 40 tasks hoàn thành · Tuần 1 ✅ · Tuần 2 ✅ · Tuần 3 ✅ · Tuần 4 ✅ · Tuần 5 ✅ (còn T5-P1-03 Release APK)
+**Tiến độ tổng quan:** 40 / 40 tasks hoàn thành · Tuần 1 ✅ · Tuần 2 ✅ · Tuần 3 ✅ · Tuần 4 ✅ · Tuần 5 ✅
 
 ---
 
@@ -187,7 +187,7 @@ P1-01 (pubspec + flutter create)            ✅
 |--------|----|----|--------|-------------|---------|
 | ✅ | **T5-P1-01** | Viết Unit Test `StudyViewModel` — test `calculateScore()`, `markKnown()`, `markUnknown()` | `test/study-viewmodel` | `test/viewmodels/study_viewmodel_test.dart` với ≥ 3 test cases | `flutter test` PASS |
 | ✅ | **T5-P1-02** | Chạy `flutter analyze` — fix tất cả warnings/errors | _(main branch)_ | Output: `No issues found!` | `flutter analyze` sạch |
-| ⬜ | **T5-P1-03** | Build Release APK | `chore/release` | `build/app/outputs/flutter-apk/app-release.apk` | APK chạy được trên emulator |
+| ✅ | **T5-P1-03** | Build Release APK | `chore/release` | `build/app/outputs/flutter-apk/app-release.apk` | APK chạy được trên emulator |
 
 ### P3 — ductdhe186732
 
