@@ -2,7 +2,7 @@
 > Group 2 · SE1941 · PRM393  
 > 5 thành viên · 5 tuần
 
-**Tiến độ tổng quan:** 30 / 40 tasks hoàn thành · Tuần 1 ✅ · Tuần 2 ✅ · T3-P4 ✅ · T3-P5 ✅ · T3-P1~P3 còn lại
+**Tiến độ tổng quan:** 39 / 40 tasks hoàn thành · Tuần 1 ✅ · Tuần 2 ✅ · Tuần 3 ✅ · Tuần 4 ✅ · Tuần 5 ✅ (còn T5-P1-03 Release APK)
 
 ---
 
@@ -127,15 +127,15 @@ P1-01 (pubspec + flutter create)            ✅
 
 | Status | ID | Task | Branch | Deliverable | Done khi |
 |--------|----|----|--------|-------------|---------|
-| ⬜ | **T3-P2-01** | Swap `AuthViewModel` mock → real API | `feat/auth` | `login()` gọi `apiService.login()`, lưu JWT, xử lý lỗi 401 | Đăng nhập thật với BE |
-| ⬜ | **T3-P2-02** | Implement `ProfilePage` | `feat/auth` | Hiển thị user info từ `AuthViewModel`, nút logout | Logout xóa token, về LoginPage |
+| ✅ | **T3-P2-01** | Swap `AuthViewModel` mock → real API | `feat/auth` | `login()` gọi `apiService.login()`, lưu JWT, xử lý lỗi 401 | Đăng nhập thật với BE |
+| ✅ | **T3-P2-02** | Implement `ProfilePage` | `feat/auth` | Hiển thị user info từ `AuthViewModel`, nút logout | Logout xóa token, về LoginPage |
 
 ### P3 — ductdhe186732
 
 | Status | ID | Task | Branch | Deliverable | Done khi |
 |--------|----|----|--------|-------------|---------|
-| ⬜ | **T3-P3-01** | Swap `StudySetViewModel` mock → real API | `feat/study-set` | `loadStudySets()` gọi `apiService.getStudySets()`, xử lý loading/error state | Data thật hiển thị trên UI |
-| ⬜ | **T3-P3-02** | Hoàn thiện search + filter với real API | `feat/study-set` | Search và filter hoạt động với data thật | Filter trả kết quả đúng |
+| ✅ | **T3-P3-01** | Swap `StudySetViewModel` mock → real API | `feat/study-set` | `loadStudySets()` gọi `apiService.getStudySets()`, xử lý loading/error state | Data thật hiển thị trên UI |
+| ✅ | **T3-P3-02** | Hoàn thiện search + filter với real API | `feat/study-set` | Search và filter hoạt động với data thật | Filter trả kết quả đúng |
 
 ### P4 — taiknhe186063
 
@@ -159,23 +159,23 @@ P1-01 (pubspec + flutter create)            ✅
 
 | Status | ID | Task | Branch | Deliverable | Done khi |
 |--------|----|----|--------|-------------|---------|
-| ⬜ | **T4-P1-01** | Hỗ trợ fix integration issues (401 handling, token refresh flow) | _(theo issue)_ | Auto-logout khi 401 trên bất kỳ API call nào | 401 → về LoginPage, không crash |
-| ⬜ | **T4-P1-02** | Thêm global error handling — DioException → SnackBar | `feat/api-service` | Mọi API error hiển thị SnackBar thông báo rõ ràng | Mất mạng → SnackBar, không crash |
+| ✅ | **T4-P1-01** | Hỗ trợ fix integration issues (401 handling, token refresh flow) | _(theo issue)_ | Auto-logout khi 401 trên bất kỳ API call nào | 401 → về LoginPage, không crash |
+| ✅ | **T4-P1-02** | Thêm global error handling — DioException → SnackBar | `feat/api-service` | Mọi API error hiển thị SnackBar thông báo rõ ràng | Mất mạng → SnackBar, không crash |
 
 ### P5 — tuantahe176408
 
 | Status | ID | Task | Branch | Deliverable | Done khi |
 |--------|----|----|--------|-------------|---------|
-| ⬜ | **T4-P5-01** | Implement `ChatViewModel` + `ChatPage` | `feat/dashboard-chat` | Load messages (`GET /api/messages/{setId}`), gửi tin (`POST`), optimistic update | Tin nhắn gửi/nhận được |
-| ⬜ | **T4-P5-02** | Swap `NotificationViewModel` mock → real API | `feat/dashboard-chat` | `GET /api/notifications`, badge count real-time trong app | Badge đúng với data thật |
+| ✅ | **T4-P5-01** | Implement `ChatViewModel` + `ChatPage` | `feat/dashboard-chat` | Load messages (`GET /api/messages/{setId}`), gửi tin (`POST`), optimistic update | Tin nhắn gửi/nhận được |
+| ✅ | **T4-P5-02** | Swap `NotificationViewModel` mock → real API | `feat/dashboard-chat` | `GET /api/notifications`, badge count real-time trong app | Badge đúng với data thật |
 
 ### P2, P3, P4 — Polish
 
 | Status | ID | Người | Task |
 |--------|----|----|------|
-| ⬜ | **T4-P2-01** | P2 | UI polish LoginPage, RegisterPage — loading state, error messages |
-| ⬜ | **T4-P3-01** | P3 | Loading skeleton khi fetch study sets; empty state khi không có kết quả |
-| ⬜ | **T4-P4-01** | P4 | Polish FlashcardStudy — progress bar, số thẻ còn lại; polish QuizPage |
+| ✅ | **T4-P2-01** | P2 | UI polish LoginPage, RegisterPage — loading state, error messages |
+| ✅ | **T4-P3-01** | P3 | Loading skeleton khi fetch study sets; empty state khi không có kết quả |
+| ✅ | **T4-P4-01** | P4 | Polish FlashcardStudy — progress bar, số thẻ còn lại; polish QuizPage |
 
 ---
 
@@ -185,23 +185,23 @@ P1-01 (pubspec + flutter create)            ✅
 
 | Status | ID | Task | Branch | Deliverable | Done khi |
 |--------|----|----|--------|-------------|---------|
-| ⬜ | **T5-P1-01** | Viết Unit Test `StudyViewModel` — test `calculateScore()`, `markKnown()`, `markUnknown()` | `test/study-viewmodel` | `test/viewmodels/study_viewmodel_test.dart` với ≥ 3 test cases | `flutter test` PASS |
-| ⬜ | **T5-P1-02** | Chạy `flutter analyze` — fix tất cả warnings/errors | _(main branch)_ | Output: `No issues found!` | `flutter analyze` sạch |
+| ✅ | **T5-P1-01** | Viết Unit Test `StudyViewModel` — test `calculateScore()`, `markKnown()`, `markUnknown()` | `test/study-viewmodel` | `test/viewmodels/study_viewmodel_test.dart` với ≥ 3 test cases | `flutter test` PASS |
+| ✅ | **T5-P1-02** | Chạy `flutter analyze` — fix tất cả warnings/errors | _(main branch)_ | Output: `No issues found!` | `flutter analyze` sạch |
 | ⬜ | **T5-P1-03** | Build Release APK | `chore/release` | `build/app/outputs/flutter-apk/app-release.apk` | APK chạy được trên emulator |
 
 ### P3 — ductdhe186732
 
 | Status | ID | Task | Branch | Deliverable | Done khi |
 |--------|----|----|--------|-------------|---------|
-| ⬜ | **T5-P3-01** | Viết Widget Test `StudySetCard` — verify tên, số thẻ render đúng | `test/study-set-card` | `test/widgets/study_set_card_test.dart` với ≥ 2 test cases | `flutter test` PASS |
+| ✅ | **T5-P3-01** | Viết Widget Test `StudySetCard` — verify tên, số thẻ render đúng | `test/study-set-card` | `test/widgets/study_set_card_test.dart` với ≥ 2 test cases | `flutter test` PASS |
 
 ### P2, P4, P5 — Bug Fix & Final QA
 
 | Status | ID | Người | Task |
 |--------|----|----|------|
-| ⬜ | **T5-P2-01** | P2 | Test toàn bộ auth flow: register → login → profile → logout |
-| ⬜ | **T5-P4-01** | P4 | Test flashcard flip animation; test quiz end-to-end |
-| ⬜ | **T5-P5-01** | P5 | Test progress chart với data thật; test chat gửi/nhận |
+| ✅ | **T5-P2-01** | P2 | Test toàn bộ auth flow: register → login → profile → logout |
+| ✅ | **T5-P4-01** | P4 | Test flashcard flip animation; test quiz end-to-end |
+| ✅ | **T5-P5-01** | P5 | Test progress chart với data thật; test chat gửi/nhận |
 
 ---
 
