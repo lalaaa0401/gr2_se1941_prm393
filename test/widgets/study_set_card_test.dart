@@ -4,7 +4,7 @@ import 'package:quizzone/models/study_set.dart';
 import 'package:quizzone/widgets/study_set_card.dart';
 
 void main() {
-  Widget _wrap(Widget child) {
+  Widget buildWrapped(Widget child) {
     return MaterialApp(home: Scaffold(body: child));
   }
 
@@ -21,7 +21,7 @@ void main() {
         cardCount: 20,
       );
 
-      await tester.pumpWidget(_wrap(StudySetCard(studySet: studySet)));
+      await tester.pumpWidget(buildWrapped(StudySetCard(studySet: studySet)));
 
       expect(find.text('English Vocabulary'), findsOneWidget);
     });
@@ -33,7 +33,7 @@ void main() {
         cardCount: 15,
       );
 
-      await tester.pumpWidget(_wrap(StudySetCard(studySet: studySet)));
+      await tester.pumpWidget(buildWrapped(StudySetCard(studySet: studySet)));
 
       expect(find.text('15 thẻ'), findsOneWidget);
 
@@ -50,7 +50,7 @@ void main() {
         cardCount: 10,
       );
 
-      await tester.pumpWidget(_wrap(StudySetCard(studySet: studySet)));
+      await tester.pumpWidget(buildWrapped(StudySetCard(studySet: studySet)));
 
       expect(find.text('SE'), findsOneWidget);
     });
@@ -59,10 +59,8 @@ void main() {
         (tester) async {
       final studySet = StudySet(id: 4, title: 'No Subject', cardCount: 5);
 
-      await tester.pumpWidget(_wrap(StudySetCard(studySet: studySet)));
+      await tester.pumpWidget(buildWrapped(StudySetCard(studySet: studySet)));
 
-      // Subject chip should not be present
-      expect(find.byType(Container), findsWidgets);
       // No subject-specific text beyond title and count
       expect(find.text('No Subject'), findsOneWidget);
       expect(find.text('5 thẻ'), findsOneWidget);
@@ -73,7 +71,7 @@ void main() {
       final studySet = StudySet(id: 5, title: 'Tap Test', cardCount: 3);
 
       await tester.pumpWidget(
-        _wrap(StudySetCard(studySet: studySet, onTap: () => tapped = true)),
+        buildWrapped(StudySetCard(studySet: studySet, onTap: () => tapped = true)),
       );
 
       await tester.tap(find.byType(GestureDetector));
