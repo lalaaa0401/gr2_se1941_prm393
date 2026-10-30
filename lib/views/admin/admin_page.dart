@@ -1149,7 +1149,10 @@ class _StudySetsTabState extends State<_StudySetsTab> {
                     final dotColor =
                         AppColors.getSubjectTextColor(set.subject);
 
-                    return Padding(
+                    return InkWell(
+                      onTap: () => context.go('/study-set/${set.id}'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
                       padding:
                           const EdgeInsets.symmetric(vertical: 12),
                       child: Row(
@@ -1231,7 +1234,8 @@ class _StudySetsTabState extends State<_StudySetsTab> {
                           ),
                         ],
                       ),
-                    );
+                    ), // close Padding
+                    ); // close InkWell
                   },
                 ),
               ),
