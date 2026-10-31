@@ -182,7 +182,13 @@ class _QuizPageState extends State<QuizPage> {
                           color: AppColors.textPrimary,
                           size: 20,
                         ),
-                        onPressed: () => context.pop(),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/home');
+                          }
+                        },
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
