@@ -72,7 +72,13 @@ class _ChatPageState extends State<ChatPage> {
                       Icons.arrow_back,
                       color: AppColors.textPrimary,
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/home');
+                      }
+                    },
                   ),
                   Text('Bình luận', style: AppTextStyles.h1),
                 ],
