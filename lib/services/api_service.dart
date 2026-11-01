@@ -86,14 +86,13 @@ class ApiService {
     throw Exception(response.data['message']);
   }
 
-  /// GET /api/study-sets/mine
+  /// GET /api/study-sets/mine — hỗ trợ cả paginated (Map với 'content') và plain List
   Future<List<StudySet>> getMyStudySets() async {
     final response = await _dio.get('/api/study-sets/mine');
     if (response.data['success'] == true) {
-      final pageData = response.data['data'];
-      return (pageData['content'] as List)
-          .map((e) => StudySet.fromJson(e))
-          .toList();
+      final raw = response.data['data'];
+      final items = raw is Map ? (raw['content'] as List) : (raw as List);
+      return items.map((e) => StudySet.fromJson(e)).toList();
     }
     throw Exception(response.data['message']);
   }
@@ -137,6 +136,50 @@ class ApiService {
       '/api/study-sets/$studySetId/flashcards',
       data: {'term': term, 'definition': definition, 'position': position},
     );
+    if (response.data['success'] != true) {
+      throw Exception(response.data['message']);
+    }
+  }
+
+  /// DELETE /api/study-sets/{id} — xóa bộ học của user
+  Future<void> deleteStudySet(int id) async {
+    final response = await _dio.delete('/api/study-sets/$id');
+    if (response.data['success'] != true) {
+      throw Exception(response.data['message']);
+    }
+  }
+
+  /// PUT /api/study-sets/{id} — cập nhật thông tin bộ học
+  Future<StudySet> updateStudySet(int id, String title,
+      {String? description, String? subject, bool isPublic = true}) async {
+    final response = await _dio.put('/api/study-sets/$id', data: {
+      'title': title,
+      if (description != null) 'description': description,
+      if (subject != null) 'subject': subject,
+      'isPublic': isPublic,
+    });
+    if (response.data['success'] == true) {
+      return StudySet.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['message']);
+  }
+
+  /// PUT /api/study-sets/flashcards/{cardId} — chỉnh sửa flashcard
+  Future<void> updateFlashcard(
+      int cardId, String term, String definition, int position) async {
+    final response = await _dio.put('/api/study-sets/flashcards/$cardId', data: {
+      'term': term,
+      'definition': definition,
+      'position': position,
+    });
+    if (response.data['success'] != true) {
+      throw Exception(response.data['message']);
+    }
+  }
+
+  /// DELETE /api/study-sets/flashcards/{cardId} — xóa flashcard
+  Future<void> deleteFlashcard(int cardId) async {
+    final response = await _dio.delete('/api/study-sets/flashcards/$cardId');
     if (response.data['success'] != true) {
       throw Exception(response.data['message']);
     }

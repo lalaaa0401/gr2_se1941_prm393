@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'study_set/study_set_list_page.dart';
 import 'progress/progress_page.dart';
-import 'create/create_study_set_page.dart';
+import 'my_sets/my_study_sets_page.dart';
 import 'profile/profile_page.dart';
 import '../core/app_colors.dart';
 import '../core/app_strings.dart';
@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<Widget> _pages = [
     StudySetListPage(),    // index 0 — Học
     ProgressPage(),        // index 1 — Tiến độ
-    CreateStudySetPage(),  // index 2 — Tạo
+    MyStudySetsPage(),     // index 2 — Bộ học
     ProfilePage(),         // index 3 — Hồ sơ
   ];
 
@@ -84,9 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
             label: AppStrings.navProgress,
           ),
           NavigationDestination(
-            icon: Icon(Icons.add_circle_outline_rounded),
-            selectedIcon: Icon(Icons.add_circle_rounded),
-            label: AppStrings.navCreate,
+            icon: Icon(Icons.bookmark_border_rounded),
+            selectedIcon: Icon(Icons.bookmark_rounded),
+            label: 'Bộ học',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
