@@ -1202,7 +1202,7 @@ class _StudySetsTabState extends State<_StudySetsTab> {
                         AppColors.getSubjectTextColor(set.subject);
 
                     return InkWell(
-                      onTap: () => context.go('/study-set/${set.id}'),
+                      onTap: () => _showAdminSetInfo(context, set),
                       borderRadius: BorderRadius.circular(8),
                       child: Padding(
                       padding:
@@ -1294,6 +1294,109 @@ class _StudySetsTabState extends State<_StudySetsTab> {
           ],
         );
       },
+    );
+  }
+
+  void _showAdminSetInfo(BuildContext context, StudySet set) {
+    final ownerName = set.owner?['fullName'] as String? ?? '—';
+    final dotColor = AppColors.getSubjectTextColor(set.subject);
+    final createdAt = set.createdAt?.split('T').first ?? '—';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2)),
+            )),
+            // Subject + visibility badges
+            Row(children: [
+              Container(width: 10, height: 10,
+                  decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
+              const SizedBox(width: 8),
+              if (set.subject != null) ...[
+                Text(set.subject!.toUpperCase(), style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.w700,
+                  letterSpacing: 1.5, color: dotColor)),
+                const SizedBox(width: 8),
+              ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: set.isPublic ? AppColors.knownLight : AppColors.surfaceDim,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  set.isPublic ? 'Công khai' : 'Riêng tư',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                    color: set.isPublic ? AppColors.known : AppColors.textSecondary),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Text(set.title, style: AppTextStyles.h1),
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 12),
+            _setInfoRow(Icons.person_outline, 'Người tạo', ownerName),
+            _setInfoRow(Icons.calendar_today_outlined, 'Ngày tạo', createdAt),
+            _setInfoRow(Icons.style_outlined, 'Số thẻ', '${set.cardCount} thẻ'),
+            _setInfoRow(Icons.check_circle_outline, 'Đã thuộc',
+                '${set.knownCards ?? 0} thẻ'),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.go('/study-set/${set.id}');
+                },
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: const Text('Xem chi tiết',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _setInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 10),
+        Text('$label: ', style: AppTextStyles.caption),
+        Expanded(child: Text(value,
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary),
+            overflow: TextOverflow.ellipsis)),
+      ]),
     );
   }
 }
