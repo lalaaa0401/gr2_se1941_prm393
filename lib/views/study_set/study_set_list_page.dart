@@ -327,7 +327,16 @@ class _StudySetListPageState extends State<StudySetListPage> {
             style: TextStyle(color: AppColors.textSecondary)),
       );
     }
-    return ListView.separated(
+    return RefreshIndicator(
+      onRefresh: () async {
+        await Future.wait([
+          vm.loadStudySets(forceRefresh: true),
+          context.read<ProgressViewModel>().loadProgress(),
+        ]);
+      },
+      color: AppColors.primary,
+      backgroundColor: AppColors.surface,
+      child: ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       itemCount: vm.studySets.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -338,7 +347,8 @@ class _StudySetListPageState extends State<StudySetListPage> {
           onTap: () => context.go('/study-set/${set.id}'),
         );
       },
-    );
+    ),   // end ListView.separated
+    );   // end RefreshIndicator
   }
 }
 
