@@ -459,7 +459,7 @@ class _EditSetSheetState extends State<_EditSetSheet> {
     final ok = await widget.vm.updateSet(
       widget.set.id,
       title,
-      description: _descController.text.trim(),
+      description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
       subject: _subject,
       isPublic: _isPublic,
     );
@@ -478,6 +478,7 @@ class _EditSetSheetState extends State<_EditSetSheet> {
     final defCtrl = TextEditingController(text: card.definition);
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
