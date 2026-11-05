@@ -8,8 +8,8 @@ import 'error_bus.dart';
 class ApiClient {
   ApiClient._();
 
-  // Android emulator → localhost. Đổi thành URL deploy khi release.
-  static const String baseUrl = 'http://10.0.2.2:8080';
+  // Web/Desktop: http://localhost:8080
+  static const String baseUrl = 'http://localhost:8080';
 
   static final Dio _dio = Dio(
     BaseOptions(
