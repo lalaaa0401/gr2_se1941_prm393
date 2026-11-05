@@ -40,9 +40,8 @@ class StudySetViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> loadStudySets({bool forceRefresh = false}) async {
+  Future<void> loadStudySets({bool forceRefresh = true}) async {
     if (_isLoading) return;
-    if (!forceRefresh && _studySets.isNotEmpty) return;
 
     _isLoading = true;
     _errorMessage = null;

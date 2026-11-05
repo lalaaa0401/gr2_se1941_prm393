@@ -89,7 +89,12 @@ class _NotificationPageState extends State<NotificationPage> {
                         child: Text(AppStrings.emptyNotifications),
                       );
                     }
-                    return ListView.builder(
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        await vm.loadNotifications();
+                      },
+                      color: AppColors.primary,
+                      child: ListView.builder(
                       itemCount: vm.notifications.length,
                       itemBuilder: (context, index) {
                         final n = vm.notifications[index];
@@ -99,7 +104,8 @@ class _NotificationPageState extends State<NotificationPage> {
                           onTap: () => vm.markAsRead(n.id),
                         );
                       },
-                    );
+                    ),  // close ListView.builder
+                    );  // close RefreshIndicator
                   },
                 ),
               ),

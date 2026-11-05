@@ -98,7 +98,10 @@ class _ProgressPageState extends State<ProgressPage> {
                     ),
                     child: s == null
                         ? const Center(child: Text('Chưa có dữ liệu'))
-                        : ListView(
+                        : RefreshIndicator(
+                          onRefresh: () => vm.refresh(),
+                          color: AppColors.primary,
+                          child: ListView(
                             padding: const EdgeInsets.all(24),
                             children: [
                               // Bar chart tuần
@@ -117,7 +120,8 @@ class _ProgressPageState extends State<ProgressPage> {
                                     (p) => _SetProgressItem(progress: p)),
                               ],
                             ],
-                          ),
+                          ),    // close ListView
+                        ),      // close RefreshIndicator
                   ),
                 ),
               ],
