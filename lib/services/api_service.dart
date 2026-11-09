@@ -254,6 +254,17 @@ class ApiService {
     }
     throw Exception(response.data['message']);
   }
+
+  /// GET /api/quiz-results/{setId} → lịch sử quiz của một bộ học cụ thể
+  Future<List<QuizHistoryItem>> getQuizResultsBySet(int setId) async {
+    final response = await _dio.get('/api/quiz-results/$setId');
+    if (response.data['success'] == true) {
+      return (response.data['data'] as List)
+          .map((e) => QuizHistoryItem.fromJson(e))
+          .toList();
+    }
+    throw Exception(response.data['message']);
+  }
   Future<QuizResult> submitQuizResult(int studySetId, int score, int totalQuestions) async {
     final response = await _dio.post('/api/quiz-results',
         data: {
