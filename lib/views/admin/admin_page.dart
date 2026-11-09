@@ -1355,7 +1355,7 @@ class _StudySetsTabState extends State<_StudySetsTab> {
             _setInfoRow(Icons.calendar_today_outlined, 'Ngày tạo', createdAt),
             _setInfoRow(Icons.style_outlined, 'Số thẻ', '${set.cardCount} thẻ'),
             _setInfoRow(Icons.check_circle_outline, 'Đã thuộc',
-                '${set.knownCards ?? 0} thẻ'),
+                '${set.knownCards} thẻ'),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,

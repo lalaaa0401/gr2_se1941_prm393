@@ -395,7 +395,26 @@ class _QuizHistorySection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Lịch sử quiz', style: AppTextStyles.h2),
+            // Header row với count badge
+            Row(
+              children: [
+                const Text('Lịch sử quiz', style: AppTextStyles.h2),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${vm.quizHistory.length}',
+                    style:
+                        AppTextStyles.mono.copyWith(color: AppColors.primary),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             ...vm.quizHistory.map(
               (item) => Padding(
@@ -415,14 +434,15 @@ class _QuizHistorySection extends StatelessWidget {
 }
 
 class _QuizHistoryTile extends StatelessWidget {
-  final QuizHistoryItem item;
+  final QuizResult item;
   final int studySetId;
 
   const _QuizHistoryTile({required this.item, required this.studySetId});
 
-  String _formatDate(String raw) {
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
     try {
-      final dt = DateTime.parse(raw);
+      final dt = DateTime.parse(raw).toLocal();
       return DateFormat('dd/MM/yyyy HH:mm').format(dt);
     } catch (_) {
       return raw;
@@ -431,11 +451,19 @@ class _QuizHistoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final passed = item.percentage >= 50;
-    final pct = item.percentage.round();
+    final pct = item.scorePercentage.round();
+    final Color pctColor;
+    if (pct >= 60) {
+      pctColor = AppColors.known;
+    } else if (pct >= 30) {
+      pctColor = AppColors.warning;
+    } else {
+      pctColor = AppColors.error;
+    }
 
-    return GestureDetector(
+    return InkWell(
       onTap: () => _showDetail(context),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
@@ -445,45 +473,42 @@ class _QuizHistoryTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Score circle
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: passed ? AppColors.knownLight : AppColors.unknownLight,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  '$pct%',
-                  style: AppTextStyles.mono.copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: passed ? AppColors.known : AppColors.unknown,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            // Score text + date
+            // Date + score (left column)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${item.score}/${item.totalQuestions} câu đúng',
-                    style: AppTextStyles.body
-                        .copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
                     _formatDate(item.takenAt),
                     style: AppTextStyles.caption
                         .copyWith(color: AppColors.textSecondary),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${item.score}/${item.totalQuestions} câu đúng',
+                    style: AppTextStyles.body
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
                 ],
               ),
             ),
+            // Percentage badge (right)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: pctColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$pct%',
+                style: AppTextStyles.mono.copyWith(
+                  color: pctColor,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
             const Icon(
               Icons.chevron_right,
               color: AppColors.textSecondary,
@@ -496,198 +521,265 @@ class _QuizHistoryTile extends StatelessWidget {
   }
 
   void _showDetail(BuildContext context) {
+    final vm = context.read<StudyViewModel>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _QuizHistoryDetailSheet(
-        item: item,
+      builder: (_) => _QuizDetailSheet(
+        quiz: item,
+        vm: vm,
         studySetId: studySetId,
       ),
     );
   }
 }
 
-/// Bottom sheet chi tiết một lần làm quiz.
-class _QuizHistoryDetailSheet extends StatelessWidget {
-  final QuizHistoryItem item;
+// ─── Quiz Detail Sheet ────────────────────────────────────────────────────────
+
+class _QuizDetailSheet extends StatefulWidget {
+  final QuizResult quiz;
+  final StudyViewModel vm;
   final int studySetId;
 
-  const _QuizHistoryDetailSheet({
-    required this.item,
+  const _QuizDetailSheet({
+    required this.quiz,
+    required this.vm,
     required this.studySetId,
   });
 
-  String _formatDate(String raw) {
-    try {
-      final dt = DateTime.parse(raw);
-      return DateFormat('EEEE, dd/MM/yyyy – HH:mm', 'vi').format(dt);
-    } catch (_) {
-      return raw;
+  @override
+  State<_QuizDetailSheet> createState() => _QuizDetailSheetState();
+}
+
+class _QuizDetailSheetState extends State<_QuizDetailSheet> {
+  Future<QuizResultDetail?>? _detailsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.quiz.wrongCardIds.isNotEmpty && widget.quiz.id != null) {
+      _detailsFuture = widget.vm.loadQuizDetails(widget.quiz.id!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final passed = item.percentage >= 50;
-    final pct = item.percentage.round();
-    final wrong = item.totalQuestions - item.score;
+    final quiz = widget.quiz;
+    final pct = quiz.scorePercentage.round();
+    final Color pctColor;
+    if (pct >= 60) {
+      pctColor = AppColors.known;
+    } else if (pct >= 30) {
+      pctColor = AppColors.warning;
+    } else {
+      pctColor = AppColors.error;
+    }
+
+    final dateStr = () {
+      final raw = quiz.takenAt ?? quiz.createdAt ?? '';
+      if (raw.isEmpty) return '';
+      try {
+        return DateFormat('dd/MM/yyyy HH:mm')
+            .format(DateTime.parse(raw).toLocal());
+      } catch (_) {
+        return raw;
+      }
+    }();
 
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Handle bar
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Handle bar
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Tiêu đề
-          Text(
-            passed ? '🎉 Kết quả tốt!' : 'Cố gắng hơn nhé!',
-            style: AppTextStyles.h2,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _formatDate(item.takenAt),
-            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 20),
-
-          // Khung điểm
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-            decoration: BoxDecoration(
-              color: passed ? AppColors.knownLight : AppColors.unknownLight,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Header row
+            Row(
               children: [
-                _StatCell(
-                  label: 'Điểm',
-                  value: '${item.score}/${item.totalQuestions}',
-                  color: passed ? AppColors.known : AppColors.unknown,
+                const Expanded(
+                  child: Text('Chi tiết quiz', style: AppTextStyles.h2),
                 ),
-                Container(width: 1, height: 40, color: AppColors.border),
-                _StatCell(
-                  label: 'Chính xác',
-                  value: '$pct%',
-                  color: passed ? AppColors.known : AppColors.unknown,
-                ),
-                Container(width: 1, height: 40, color: AppColors.border),
-                _StatCell(
-                  label: 'Câu sai',
-                  value: '$wrong',
-                  color: wrong > 0 ? AppColors.unknown : AppColors.known,
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                  color: AppColors.textSecondary,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
-          // Nút làm lại quiz
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/study/$studySetId/quiz');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+            // Score row
+            Row(
+              children: [
+                Text(
+                  '${quiz.score}/${quiz.totalQuestions}',
+                  style: AppTextStyles.monoLarge.copyWith(fontSize: 24),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: pctColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '$pct%',
+                    style: AppTextStyles.mono
+                        .copyWith(color: pctColor, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+
+            // Date
+            if (dateStr.isNotEmpty)
+              Text(
+                dateStr,
+                style: AppTextStyles.caption
+                    .copyWith(color: AppColors.textSecondary),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: const Text(
-              'Làm quiz lại',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-            ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 16),
+            const Divider(color: AppColors.border, height: 1),
+            const SizedBox(height: 16),
 
-          // Nút ôn thẻ yếu (làm lại câu sai qua weak cards)
-          if (wrong > 0)
-            OutlinedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                final vm = context.read<StudyViewModel>();
-                await vm.loadWeakCards(studySetId);
-                if (!context.mounted) return;
-                if (vm.weakCards.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Không có thẻ nào cần ôn lại!'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
+            // Wrong cards section
+            if (quiz.wrongCardIds.isEmpty)
+              const Text('🎉 Làm đúng tất cả!', style: AppTextStyles.body)
+            else
+              FutureBuilder<QuizResultDetail?>(
+                future: _detailsFuture,
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final detail = snap.data;
+                  if (detail == null || detail.wrongCards.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Câu sai (${detail.wrongCards.length})',
+                        style: AppTextStyles.h3,
+                      ),
+                      const SizedBox(height: 8),
+                      ...detail.wrongCards.map(
+                        (card) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                margin: const EdgeInsets.only(top: 5),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.error,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      card.term,
+                                      style: AppTextStyles.body.copyWith(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      card.definition,
+                                      style: AppTextStyles.body.copyWith(
+                                          color: AppColors.textSecondary),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Ôn lại thẻ sai
+                      ElevatedButton(
+                        onPressed: () async {
+                          final d = await widget.vm
+                              .loadQuizDetails(quiz.id!);
+                          if (d == null || !context.mounted) return;
+                          widget.vm.setReviewCards(d.wrongCards);
+                          Navigator.of(context).pop();
+                          if (context.mounted) {
+                            context.go('/review/wrong');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: Text(
+                          'Ôn lại thẻ sai (${quiz.wrongCardIds.length})',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   );
-                  return;
-                }
-                context.go('/review/weak/$studySetId');
+                },
+              ),
+            const SizedBox(height: 12),
+
+            // Làm lại quiz
+            OutlinedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.go('/study/${widget.studySetId}/quiz');
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.unknown,
-                side: const BorderSide(color: AppColors.unknown, width: 1.5),
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text(
-                'Ôn lại thẻ sai ($wrong)',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
+              child: const Text(
+                'Làm lại quiz',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _StatCell extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _StatCell({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: AppTextStyles.monoLarge.copyWith(color: color, fontSize: 22),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
-        ),
-      ],
-    );
-  }
-}
