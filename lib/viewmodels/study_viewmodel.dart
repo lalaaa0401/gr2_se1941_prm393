@@ -28,7 +28,7 @@ class StudyViewModel extends ChangeNotifier {
   List<Flashcard> _weakCards = [];
 
   // ─── Quiz History ─────────────────────────────────────────────────────────
-  List<QuizHistoryItem> _quizHistory = [];
+  List<QuizResult> _quizHistory = [];
   bool _isLoadingHistory = false;
   String? _historyError;
 
@@ -41,7 +41,7 @@ class StudyViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  List<QuizHistoryItem> get quizHistory => List.unmodifiable(_quizHistory);
+  List<QuizResult> get quizHistory => List.unmodifiable(_quizHistory);
   bool get isLoadingHistory => _isLoadingHistory;
   String? get historyError => _historyError;
 
@@ -94,7 +94,9 @@ class StudyViewModel extends ChangeNotifier {
     _lastTotal = total;
     notifyListeners();
     try {
-      return await _apiService.submitQuizResult(studySetId, score, total);
+      final wrongIds = _wrongCards.map((c) => c.id).toList();
+      return await _apiService.submitQuizResult(studySetId, score, total,
+          wrongCardIds: wrongIds);
     } catch (_) {
       return null;
     }
@@ -164,5 +166,20 @@ class StudyViewModel extends ChangeNotifier {
       _isLoadingHistory = false;
       notifyListeners();
     }
+  }
+
+  /// Tải chi tiết thẻ sai của một lần làm quiz.
+  Future<QuizResultDetail?> loadQuizDetails(int quizId) async {
+    try {
+      return await _apiService.getQuizResultDetails(quizId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Gán danh sách thẻ cần ôn lại (dùng trước khi vào ReviewFlashcardPage.wrong).
+  void setReviewCards(List<Flashcard> cards) {
+    _wrongCards = List<Flashcard>.from(cards);
+    notifyListeners();
   }
 }

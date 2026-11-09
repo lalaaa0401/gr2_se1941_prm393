@@ -14,7 +14,11 @@ class _StubApiService extends ApiService {
 
   @override
   Future<QuizResult> submitQuizResult(
-      int studySetId, int score, int totalQuestions) async {
+    int studySetId,
+    int score,
+    int totalQuestions, {
+    List<int> wrongCardIds = const [],
+  }) async {
     return QuizResult(
       studySetId: studySetId,
       score: score,

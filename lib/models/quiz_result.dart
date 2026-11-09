@@ -1,9 +1,13 @@
+import 'flashcard.dart';
+
 class QuizResult {
   final int? id;
   final int studySetId;
   final int score;
   final int totalQuestions;
   final String? createdAt;
+  final List<int> wrongCardIds;
+  final String? takenAt;
 
   QuizResult({
     this.id,
@@ -11,6 +15,8 @@ class QuizResult {
     required this.score,
     required this.totalQuestions,
     this.createdAt,
+    this.wrongCardIds = const [],
+    this.takenAt,
   });
 
   double get scorePercentage =>
@@ -18,17 +24,36 @@ class QuizResult {
 
   factory QuizResult.fromJson(Map<String, dynamic> json) => QuizResult(
     id: json['id'],
-    studySetId: json['studySetId'],
-    score: json['score'],
-    totalQuestions: json['totalQuestions'],
+    studySetId: json['studySetId'] ??
+        (json['studySet'] as Map<String, dynamic>?)?['id'] as int? ??
+        0,
+    score: json['score'] ?? 0,
+    totalQuestions: json['totalQuestions'] ?? 0,
     createdAt: json['createdAt'],
+    wrongCardIds: (json['wrongCardIds'] as List? ?? []).cast<int>(),
+    takenAt: json['takenAt'] ?? json['createdAt'],
   );
 
   Map<String, dynamic> toJson() => {
     'studySetId': studySetId,
     'score': score,
     'totalQuestions': totalQuestions,
+    if (wrongCardIds.isNotEmpty) 'wrongCardIds': wrongCardIds,
   };
+}
+
+/// Chi tiết một lần làm quiz — từ GET /api/quiz-results/{quizId}/details
+class QuizResultDetail {
+  final List<Flashcard> wrongCards;
+
+  QuizResultDetail({required this.wrongCards});
+
+  factory QuizResultDetail.fromJson(Map<String, dynamic> json) =>
+      QuizResultDetail(
+        wrongCards: (json['wrongCards'] as List? ?? [])
+            .map((e) => Flashcard.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 }
 
 /// Quiz history item từ GET /api/quiz-results/mine
