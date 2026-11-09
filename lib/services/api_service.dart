@@ -256,22 +256,40 @@ class ApiService {
   }
 
   /// GET /api/quiz-results/{setId} → lịch sử quiz của một bộ học cụ thể
-  Future<List<QuizHistoryItem>> getQuizResultsBySet(int setId) async {
+  Future<List<QuizResult>> getQuizResultsBySet(int setId) async {
     final response = await _dio.get('/api/quiz-results/$setId');
     if (response.data['success'] == true) {
-      return (response.data['data'] as List)
-          .map((e) => QuizHistoryItem.fromJson(e))
+      final data = response.data['data'];
+      final items = data is List ? data : [data];
+      return items
+          .map((e) => QuizResult.fromJson(e as Map<String, dynamic>))
           .toList();
     }
     throw Exception(response.data['message']);
   }
-  Future<QuizResult> submitQuizResult(int studySetId, int score, int totalQuestions) async {
-    final response = await _dio.post('/api/quiz-results',
-        data: {
-          'studySetId': studySetId,
-          'score': score,
-          'totalQuestions': totalQuestions,
-        });
+
+  /// GET /api/quiz-results/{quizId}/details → danh sách thẻ sai của lần làm quiz
+  Future<QuizResultDetail> getQuizResultDetails(int quizId) async {
+    final response = await _dio.get('/api/quiz-results/$quizId/details');
+    if (response.data['success'] == true) {
+      return QuizResultDetail.fromJson(
+          response.data['data'] as Map<String, dynamic>);
+    }
+    throw Exception(response.data['message']);
+  }
+
+  Future<QuizResult> submitQuizResult(
+    int studySetId,
+    int score,
+    int totalQuestions, {
+    List<int> wrongCardIds = const [],
+  }) async {
+    final response = await _dio.post('/api/quiz-results', data: {
+      'studySetId': studySetId,
+      'score': score,
+      'totalQuestions': totalQuestions,
+      if (wrongCardIds.isNotEmpty) 'wrongCardIds': wrongCardIds,
+    });
     if (response.data['success'] == true) {
       return QuizResult.fromJson(response.data['data']);
     }
