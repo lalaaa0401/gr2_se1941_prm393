@@ -27,6 +27,11 @@ class StudyViewModel extends ChangeNotifier {
   List<Flashcard> _wrongCards = [];
   List<Flashcard> _weakCards = [];
 
+  // ─── Quiz History ─────────────────────────────────────────────────────────
+  List<QuizHistoryItem> _quizHistory = [];
+  bool _isLoadingHistory = false;
+  String? _historyError;
+
   StudyViewModel(this._apiService);
 
   int? get lastScore => _lastScore;
@@ -35,6 +40,10 @@ class StudyViewModel extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  List<QuizHistoryItem> get quizHistory => List.unmodifiable(_quizHistory);
+  bool get isLoadingHistory => _isLoadingHistory;
+  String? get historyError => _historyError;
 
   /// Danh sách thẻ trả lời sai trong phiên quiz hiện tại (immutable view).
   List<Flashcard> get wrongCards => List.unmodifiable(_wrongCards);
@@ -132,6 +141,27 @@ class StudyViewModel extends ChangeNotifier {
       _errorMessage = 'Không thể tải thẻ yếu';
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ─── Quiz History ─────────────────────────────────────────────────────────
+
+  /// Tải lịch sử quiz của một bộ học từ API.
+  Future<void> loadQuizHistory(int studySetId) async {
+    _isLoadingHistory = true;
+    _historyError = null;
+    notifyListeners();
+    try {
+      _quizHistory = await _apiService.getQuizResultsBySet(studySetId);
+    } on DioException catch (e) {
+      _quizHistory = [];
+      _historyError = e.response?.data['message'] ?? 'Lỗi kết nối';
+    } catch (_) {
+      _quizHistory = [];
+      _historyError = 'Không thể tải lịch sử quiz';
+    } finally {
+      _isLoadingHistory = false;
       notifyListeners();
     }
   }
