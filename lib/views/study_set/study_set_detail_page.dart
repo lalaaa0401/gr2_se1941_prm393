@@ -175,8 +175,6 @@ class _StudySetDetailView extends StatelessWidget {
                   children: [
                     _buildActionButtons(context),
                     const SizedBox(height: 20),
-                    _QuizHistorySection(studySetId: studySetId),
-                    const SizedBox(height: 8),
                     const Divider(color: AppColors.border, height: 1),
                     const SizedBox(height: 12),
                     const Text('Danh sách thẻ', style: AppTextStyles.h2),
@@ -192,6 +190,57 @@ class _StudySetDetailView extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showQuizHistoryList(BuildContext context, StudyViewModel studyVm) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: studyVm,
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.3,
+          builder: (_, ctrl) => Container(
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: Column(children: [
+              const SizedBox(height: 8),
+              Center(child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 12),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Lịch sử quiz', style: AppTextStyles.h2)),
+              ),
+              const SizedBox(height: 8),
+              Expanded(child: Consumer<StudyViewModel>(
+                builder: (ctx, vm, _) => ListView.separated(
+                  controller: ctrl,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  itemCount: vm.quizHistory.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (ctx, i) => _QuizHistoryTile(
+                    item: vm.quizHistory[i],
+                    studySetId: studySetId,
+                  ),
+                ),
+              )),
+            ]),
+          ),
         ),
       ),
     );
@@ -328,6 +377,26 @@ class _StudySetDetailView extends StatelessWidget {
               ),
               child: const Text('Bình luận'),
             ),
+            const SizedBox(height: 10),
+            // Lịch sử quiz — button, chỉ hiện khi đã làm quiz
+            if (studyVm.quizHistory.isNotEmpty)
+              OutlinedButton.icon(
+                onPressed: () => _showQuizHistoryList(context, studyVm),
+                icon: const Icon(Icons.history_rounded, size: 18),
+                label: Text(
+                    'Lịch sử quiz (${studyVm.quizHistory.length})'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(
+                      color: AppColors.primaryMuted, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  textStyle: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ),
           ],
         );
       },
@@ -368,71 +437,6 @@ class _FlashcardItem extends StatelessWidget {
 
 /// Widget hiển thị lịch sử các lần làm quiz của bộ học.
 /// Nếu chưa có lần làm nào thì không render gì.
-class _QuizHistorySection extends StatelessWidget {
-  final int studySetId;
-
-  const _QuizHistorySection({required this.studySetId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<StudyViewModel>(
-      builder: (context, vm, _) {
-        if (vm.isLoadingHistory) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Center(
-              child: SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          );
-        }
-
-        if (vm.quizHistory.isEmpty) return const SizedBox.shrink();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row với count badge
-            Row(
-              children: [
-                const Text('Lịch sử quiz', style: AppTextStyles.h2),
-                const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${vm.quizHistory.length}',
-                    style:
-                        AppTextStyles.mono.copyWith(color: AppColors.primary),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...vm.quizHistory.map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _QuizHistoryTile(
-                  item: item,
-                  studySetId: studySetId,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        );
-      },
-    );
-  }
-}
-
 class _QuizHistoryTile extends StatelessWidget {
   final QuizResult item;
   final int studySetId;
@@ -757,12 +761,23 @@ class _QuizDetailSheetState extends State<_QuizDetailSheet> {
               ),
             const SizedBox(height: 12),
 
-            // Làm lại quiz
+            // Làm lại câu sai — chỉ quiz những thẻ sai
             OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.go('/study/${widget.studySetId}/quiz');
-              },
+              onPressed: widget.quiz.wrongCardIds.isEmpty
+                  ? null
+                  : () async {
+                      final detail = await widget.vm
+                          .loadQuizDetails(widget.quiz.id ?? 0);
+                      if (!context.mounted) return;
+                      if (detail == null || detail.wrongCards.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text('Không có câu sai để làm lại!')));
+                        return;
+                      }
+                      Navigator.pop(context);
+                      widget.vm.setQuizCards(detail.wrongCards);
+                      context.go('/study/${widget.studySetId}/quiz');
+                    },
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primary, width: 1.5),
@@ -771,9 +786,12 @@ class _QuizDetailSheetState extends State<_QuizDetailSheet> {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: const Text(
-                'Làm lại quiz',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              child: Text(
+                widget.quiz.wrongCardIds.isEmpty
+                    ? 'Làm lại quiz (đúng tất cả!)'
+                    : 'Làm lại câu sai (${widget.quiz.wrongCardIds.length})',
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
               ),
             ),
           ],
