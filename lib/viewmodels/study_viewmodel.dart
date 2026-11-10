@@ -25,6 +25,7 @@ class StudyViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   List<Flashcard> _wrongCards = [];
+  List<Flashcard> _quizCards = []; // override for quiz-wrong-only mode
   List<Flashcard> _weakCards = [];
 
   // ─── Quiz History ─────────────────────────────────────────────────────────
@@ -47,6 +48,18 @@ class StudyViewModel extends ChangeNotifier {
 
   /// Danh sách thẻ trả lời sai trong phiên quiz hiện tại (immutable view).
   List<Flashcard> get wrongCards => List.unmodifiable(_wrongCards);
+
+  /// Cards được set trước khi vào quiz — chỉ quiz những thẻ này
+  List<Flashcard> get quizCards => List.unmodifiable(_quizCards);
+
+  void setQuizCards(List<Flashcard> cards) {
+    _quizCards = List<Flashcard>.from(cards);
+    notifyListeners();
+  }
+
+  void clearQuizCards() {
+    _quizCards = [];
+  }
 
   /// Danh sách thẻ yếu (UNKNOWN/LEARNING) từ API (immutable view).
   List<Flashcard> get weakCards => List.unmodifiable(_weakCards);

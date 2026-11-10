@@ -50,6 +50,7 @@ class _QuizPageState extends State<QuizPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Xóa danh sách thẻ sai của phiên quiz trước
       context.read<StudyViewModel>().clearWrongCards();
+      context.read<StudyViewModel>().clearQuizCards();
       final vm = context.read<StudySetViewModel>();
       if (!vm.isLoading) vm.loadStudySets();
     });
@@ -132,8 +133,8 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<StudySetViewModel>(
-      builder: (context, vm, _) {
+    return Consumer2<StudySetViewModel, StudyViewModel>(
+      builder: (context, vm, studyVm, _) {
         if (vm.isLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -142,7 +143,12 @@ class _QuizPageState extends State<QuizPage> {
 
         final studySet = vm.getStudySetById(widget.studySetId);
 
-        if (studySet == null || studySet.flashcards.isEmpty) {
+        // Dùng quizCards override nếu có (quiz chỉ câu sai)
+        final cardsToUse = studyVm.quizCards.isNotEmpty
+            ? studyVm.quizCards
+            : studySet?.flashcards ?? [];
+
+        if (cardsToUse.isEmpty) {
           return Scaffold(
             backgroundColor: AppColors.background,
             body: const Center(
@@ -151,7 +157,7 @@ class _QuizPageState extends State<QuizPage> {
           );
         }
 
-        _initQuestions(studySet.flashcards);
+        _initQuestions(cardsToUse);
 
         if (_questions.isEmpty) {
           return Scaffold(
